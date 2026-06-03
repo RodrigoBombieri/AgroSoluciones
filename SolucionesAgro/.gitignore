@@ -1,0 +1,102 @@
+# .gitignore para proyectos .NET / Visual Studio (Razor Pages)
+# Generado para evitar subir archivos binarios, temporales y de usuario
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+out/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# NuGet
+*.nupkg
+.packages/
+project.lock.json
+.nuget/
+artifacts/
+
+# ASP.NET Core
+wwwroot/lib/
+appsettings.Development.json
+local.settings.json
+secrets.json
+secrets.*
+
+# Publish
+publish/
+*.Publish.xml
+*.azurePubxml
+
+# Database files
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+# Logs and telemetry
+logs/
+*.log
+*.tlog
+
+# Test result files
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+# npm / frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# JetBrains (ReSharper etc.)
+_ReSharper*/
+*.ReSharper*/
+*.DotSettings.user
+
+# Rider caches
+.idea/
+*.sublime-workspace
+
+# User-specific files
+*.user
+*.userprefs
+*.pidb
+*.svclog
+
+# Generated files
+Generated\*/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage / profiling
+.vstest/
+coverage/
+
+# Ignore publish profiles with sensitive data
+Properties/PublishProfiles/*.pubxml.user
+
+# Keep package lock files (recommended) - uncomment to ignore if you prefer
+## package-lock.json
+
+# End of file
