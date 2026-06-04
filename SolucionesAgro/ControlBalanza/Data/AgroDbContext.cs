@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControlBalanza.Data
 {
-    public class AgroDbContext : IdentityDbContext
+    public class AgroDbContext : IdentityDbContext<Usuario>
     {
-        public AgroDbContext(DbContextOptions options): base(options) { }
+        public AgroDbContext(DbContextOptions<AgroDbContext> options): base(options) { }
 
         public DbSet<Pesaje> Pesajes { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }

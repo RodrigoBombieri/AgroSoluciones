@@ -1,4 +1,5 @@
 using ControlBalanza.Data;
+using ControlBalanza.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ builder.Services.AddControllersWithViews();
 // Configuración de la cadena de conexión para SQL Server   
 builder.Services.AddDbContext<AgroDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 // Configuración de Identity para autenticación y autorización
-builder.Services.AddDefaultIdentity<AgroDbContext>(options =>
+builder.Services.AddDefaultIdentity<Usuario>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
     options.Password.RequireNonAlphanumeric = false;
