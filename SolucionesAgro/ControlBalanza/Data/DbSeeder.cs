@@ -1,24 +1,44 @@
 ﻿using ControlBalanza.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ControlBalanza.Data
 {
     public class DbSeeder
     {
-        private readonly AgroDbContext _context;
-
-        public DbSeeder(AgroDbContext context)
+        
+        public static async Task Seed(AgroDbContext context, UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager)
         {
-            _context = context;
-        }
+            context.Database.EnsureCreated();
 
-        public void Seed()
-        {
-            // Aplicar migraciones pendientes
-            _context.Database.Migrate();
+            // Crear rol Admin si no existe
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            // Crear usuario admin si no existe
+            var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
+            if (adminUser == null)
+            {
+                adminUser = new Usuario
+                {
+                    UserName = "admin@admin.com",
+                    Email = "admin@admin.com",
+                    Nombre = "Admin",
+                    Apellido = "Sistema",
+                    ImagenUrlPerfil = "/images/default-avatar.png"
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin123");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
 
             // Sembrar Productos si no existen
-            if (!_context.Productos.Any())
+            if (!context.Productos.Any())
             {
                 var productos = new List<Producto>
                 {
@@ -27,12 +47,12 @@ namespace ControlBalanza.Data
                     new Producto { Nombre = "Trigo", Variedad = "Panadero" }
                 };
 
-                _context.Productos.AddRange(productos);
-                _context.SaveChanges();
+                context.Productos.AddRange(productos);
+                context.SaveChanges();
             }
 
             // Sembrar Proveedores si no existen
-            if (!_context.Proveedores.Any())
+            if (!context.Proveedores.Any())
             {
                 var proveedores = new List<Proveedor>
                 {
@@ -40,8 +60,8 @@ namespace ControlBalanza.Data
                     new Proveedor { RazonSocial = "Distribuidora Dos", CUIT = "27-87654321-0", Localidad = "Venado Tuerto", Telefono = "3462-765432" }
                 };
 
-                _context.Proveedores.AddRange(proveedores);
-                _context.SaveChanges();
+                context.Proveedores.AddRange(proveedores);
+                context.SaveChanges();
             }
         }
     }

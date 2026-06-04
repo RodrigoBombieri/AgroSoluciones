@@ -2,6 +2,8 @@ using ControlBalanza.Data;
 using ControlBalanza.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,26 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
+
+// Sembrar datos iniciales en la base de datos
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AgroDbContext>();
+        var userManager = services.GetRequiredService<UserManager<Usuario>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        await DbSeeder.Seed(context, userManager, roleManager);
+    }
+    catch (Exception ex)
+    {
+        // Log errors or handle them as needed
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred seeding the DB.");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
