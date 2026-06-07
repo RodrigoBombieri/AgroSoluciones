@@ -7,47 +7,71 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ControlBalanza.styles.css" asp-append-version="true" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&amp;family=JetBrains+Mono:wght=500&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ControlBalanza</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Pesajes" asp-action="Index">Balanza</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Playon">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+        <aside class="sidebar d-none d-lg-flex flex-column p-3 bg-dark text-white" style="width: 280px; height: 100vh; position: fixed;">
+
+            <div class="sidebar-brand mb-4">
+                <h1 class="h4 mb-0 text-white">AgroLogix</h1>
+                <small class="text-white-50" style="font-size: 12px;">Logistics Management</small>
             </div>
-        </nav>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                        <span class="material-symbols-outlined">home</span>
+                        Inicio
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Pesajes" asp-action="Index">
+                        <span class="material-symbols-outlined">move_to_inbox</span>
+                        Recepción
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Pesajes" asp-action="Index">
+                        <span class="material-symbols-outlined">scale</span>
+                        Pesaje
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
+                        <span class="material-symbols-outlined">local_shipping</span>
+                        Descargas
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Reportes
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
+                        <span class="material-symbols-outlined">settings</span>
+                        Administración
+                    </a>
+                </li>
+            </ul>
+        </aside>
     </header>
-    <div class="container">
+
+    <div class="container-content" style="margin-left: 300px; padding: 20px;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top footer text-muted" style="margin-left: 300px;">
         <div class="container">
             &copy; 2026 - ControlBalanza - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
