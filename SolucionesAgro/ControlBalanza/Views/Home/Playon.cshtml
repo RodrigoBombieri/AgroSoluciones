@@ -3,13 +3,12 @@
 }
 
 <!-- El archivo de estilos cargado de forma directa sin sección -->
-<link rel="stylesheet" href="~/angular-app/styles.css" />
+<link rel="stylesheet" href="~/angular-app/browser/styles.css" />
 
 <!-- El contenedor principal donde Angular inyectará tu aplicación -->
 <app-root></app-root>
 
 @section Scripts {
     <!-- Se mantiene igual porque tu _Layout sí tiene RenderSection("Scripts") -->
-    <script src="~/angular-app/polyfills.js" type="module"></script>
-    <script src="~/angular-app/main.js" type="module"></script>
+    <script src="~/angular-app/browser/main.js" type="module"></script>
 }
