@@ -1,0 +1,51 @@
+@model ControlBalanza.Models.Pesaje
+
+<dl class="row">
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NumeroCPE)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.NumeroCPE</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Estado)</dt>
+    <dd class="col-sm-9">@Html.DisplayFor(m => m.Estado)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ProveedorId)</dt>
+    <dd class="col-sm-9">@Model.Proveedor?.RazonSocial (@Model.Proveedor?.CUIT)</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ProductoId)</dt>
+    <dd class="col-sm-9">@Model.Producto?.Nombre @Model.Producto?.Variedad</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PatenteCamion)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.PatenteCamion</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PatenteAcoplado)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.PatenteAcoplado</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreChofer)</dt>
+    <dd class="col-sm-9">@Model.NombreChofer</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.KilosDeclarados)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.KilosDeclarados.ToString("N0") kg</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoBruto)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.PesoBruto?.ToString("N0") kg</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoTara)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.PesoTara?.ToString("N0") kg</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoNeto)</dt>
+    <dd class="col-sm-9 font-monospace">@Model.PesoNeto?.ToString("N0") kg</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaEntrada)</dt>
+    <dd class="col-sm-9">@Model.FechaEntrada.ToString("dd/MM/yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaSalida)</dt>
+    <dd class="col-sm-9">@Model.FechaSalida?.ToString("dd/MM/yyyy HH:mm")</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioBalanzaEntradaId)</dt>
+    <dd class="col-sm-9">@Model.UsuarioBalanzaEntrada?.NombreCompleto</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioPlayonId)</dt>
+    <dd class="col-sm-9">@Model.UsuarioPlayon?.NombreCompleto</dd>
+
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioBalanzaSalidaId)</dt>
+    <dd class="col-sm-9">@Model.UsuarioBalanzaSalida?.NombreCompleto</dd>
+</dl>

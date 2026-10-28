@@ -1,4 +1,4 @@
-@model IEnumerable<ControlBalanza.Models.Proveedor>
+﻿@model IEnumerable<ControlBalanza.Models.Proveedor>
 
 @{
     ViewData["Title"] = "Index";
@@ -24,9 +24,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Telefono)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Pesajes)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -44,9 +41,6 @@
             </td>
             <td>
                 @Html.DisplayFor(model => item.Telefono)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Pesajes)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

@@ -4,12 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControlBalanza.Data
 {
-    public class DbSeeder
+    public static class DbSeeder
     {
         
         public static async Task Seed(AgroDbContext context, UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager)
         {
-            context.Database.EnsureCreated();
+            // Aplica las migraciones pendientes (EnsureCreated ignoraría el historial de migraciones)
+            await context.Database.MigrateAsync();
 
             // Crear rol Admin si no existe
             if (!await roleManager.RoleExistsAsync("Admin"))

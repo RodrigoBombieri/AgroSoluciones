@@ -43,7 +43,6 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("NombreChofer")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -53,7 +52,6 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PatenteAcoplado")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -79,20 +77,27 @@ namespace ControlBalanza.Migrations
                     b.Property<int>("ProveedorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioBalanzaEntradaId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioBalanzaEntradaId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("UsuarioBalanzaSalidaId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioBalanzaSalidaId")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("UsuarioPlayonId")
-                        .HasColumnType("int");
+                    b.Property<string>("UsuarioPlayonId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProductoId");
 
                     b.HasIndex("ProveedorId");
+
+                    b.HasIndex("UsuarioBalanzaEntradaId");
+
+                    b.HasIndex("UsuarioBalanzaSalidaId");
+
+                    b.HasIndex("UsuarioPlayonId");
 
                     b.ToTable("Pesajes");
                 });
@@ -133,7 +138,6 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Localidad")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -143,7 +147,6 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Telefono")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -180,7 +183,6 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ImagenUrlPerfil")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -385,9 +387,31 @@ namespace ControlBalanza.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ControlBalanza.Models.Usuario", "UsuarioBalanzaEntrada")
+                        .WithMany()
+                        .HasForeignKey("UsuarioBalanzaEntradaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ControlBalanza.Models.Usuario", "UsuarioBalanzaSalida")
+                        .WithMany()
+                        .HasForeignKey("UsuarioBalanzaSalidaId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ControlBalanza.Models.Usuario", "UsuarioPlayon")
+                        .WithMany()
+                        .HasForeignKey("UsuarioPlayonId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Producto");
 
                     b.Navigation("Proveedor");
+
+                    b.Navigation("UsuarioBalanzaEntrada");
+
+                    b.Navigation("UsuarioBalanzaSalida");
+
+                    b.Navigation("UsuarioPlayon");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
