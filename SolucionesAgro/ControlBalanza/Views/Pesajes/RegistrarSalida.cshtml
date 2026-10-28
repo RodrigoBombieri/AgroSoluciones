@@ -1,0 +1,92 @@
+@model RegistrarSalidaViewModel
+@{
+    ViewData["Title"] = "Registrar salida";
+    var p = Model.Pesaje!;
+}
+
+<div class="page-header">
+    <div>
+        <h1>Registrar salida — <span class="mono">@p.PatenteCamion</span></h1>
+        <p class="subtitle">CPE <span class="mono">@p.NumeroCPE</span> · @p.Proveedor?.RazonSocial · @p.Producto?.Nombre</p>
+    </div>
+    <a asp-action="Salida" class="btn btn-outline-primary">Volver</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5 order-lg-2">
+        <div class="card-panel">
+            <div class="panel-title">Datos de entrada</div>
+            <dl class="row dl-compacta mb-0">
+                <dt class="col-6">Peso bruto</dt><dd class="col-6 mono" id="bruto" data-valor="@(p.PesoBruto?.ToString(System.Globalization.CultureInfo.InvariantCulture))">@VistaHelpers.Kg(p.PesoBruto)</dd>
+                <dt class="col-6">Kg declarados</dt><dd class="col-6 mono" id="declarado" data-valor="@p.KilosDeclarados.ToString(System.Globalization.CultureInfo.InvariantCulture)">@VistaHelpers.Kg(p.KilosDeclarados)</dd>
+                <dt class="col-6">Entrada</dt><dd class="col-6">@VistaHelpers.Fecha(p.FechaEntrada)</dd>
+                <dt class="col-6">Silo</dt><dd class="col-6">@(p.SiloDestino ?? "—")</dd>
+                <dt class="col-6">Descargó</dt><dd class="col-6">@(p.UsuarioPlayon?.NombreCompleto ?? "—")</dd>
+                @if (!string.IsNullOrWhiteSpace(p.Observaciones))
+                {
+                    <dt class="col-12">Observaciones</dt><dd class="col-12">@p.Observaciones</dd>
+                }
+            </dl>
+        </div>
+    </div>
+
+    <div class="col-lg-7 order-lg-1">
+        <form asp-action="RegistrarSalida" asp-route-id="@Model.PesajeId" class="card-panel">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <label asp-for="PesoTara" class="form-label"></label>
+            <input asp-for="PesoTara" class="form-control input-xl" inputmode="numeric" autofocus placeholder="0" />
+            <span asp-validation-for="PesoTara" class="text-danger"></span>
+
+            <div class="row mt-3 g-3">
+                <div class="col-6">
+                    <div class="kpi-label">Peso neto estimado</div>
+                    <div class="dato-grande" id="neto-estimado">—</div>
+                </div>
+                <div class="col-6">
+                    <div class="kpi-label">Diferencia vs. declarado</div>
+                    <div class="dato-grande" id="diferencia">—</div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <label asp-for="Observaciones" class="form-label"></label>
+                <input asp-for="Observaciones" class="form-control" />
+                <span asp-validation-for="Observaciones" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg mt-4">
+                <span class="material-symbols-outlined">check</span> Registrar salida
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        // Cálculo en vivo del neto (el valor oficial lo calcula la base al guardar)
+        (function () {
+            const bruto = parseFloat(document.getElementById('bruto').dataset.valor);
+            const declarado = parseFloat(document.getElementById('declarado').dataset.valor);
+            const tara = document.getElementById('PesoTara');
+            const neto = document.getElementById('neto-estimado');
+            const dif = document.getElementById('diferencia');
+            const fmt = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+
+            function calcular() {
+                const t = parseFloat((tara.value || '').replace(',', '.'));
+                if (isNaN(t) || isNaN(bruto)) { neto.textContent = '—'; dif.textContent = '—'; return; }
+                const n = bruto - t;
+                neto.textContent = fmt.format(n) + ' kg';
+                neto.classList.toggle('text-danger', n <= 0);
+                if (declarado > 0) {
+                    const d = n - declarado;
+                    dif.textContent = (d >= 0 ? '+' : '') + fmt.format(d) + ' kg (' + (d / declarado * 100).toFixed(2) + '%)';
+                }
+            }
+            tara.addEventListener('input', calcular);
+            calcular();
+        })();
+    </script>
+}

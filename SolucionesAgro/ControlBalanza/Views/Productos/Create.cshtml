@@ -1,36 +1,18 @@
-@model ControlBalanza.Models.Producto
-
+@model Producto
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nuevo producto";
 }
 
-<h1>Create</h1>
+<div class="page-header"><h1>Nuevo producto</h1></div>
 
-<h4>Producto</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="Nombre" class="control-label"></label>
-                <input asp-for="Nombre" class="form-control" />
-                <span asp-validation-for="Nombre" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Variedad" class="control-label"></label>
-                <input asp-for="Variedad" class="form-control" />
-                <span asp-validation-for="Variedad" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create" class="card-panel" style="max-width: 720px">
+    <partial name="_Form" model="Model" />
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Crear</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
     </div>
-</div>
+</form>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

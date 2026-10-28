@@ -1,14 +1,20 @@
-﻿@{
-    ViewData["Title"] = "Página con Angular Híbrido";
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "Playón / Descarga";
+    // Genera la cookie antiforgery y el token que Angular manda en el header X-XSRF-TOKEN
+    var tokens = Antiforgery.GetAndStoreTokens(Context);
 }
 
-<!-- El archivo de estilos cargado de forma directa sin sección -->
-<link rel="stylesheet" href="~/angular-app/browser/styles.css" />
+@section Head {
+    <meta name="xsrf-token" content="@tokens.RequestToken" />
+    <link rel="stylesheet" href="~/angular-app/browser/styles.css" asp-append-version="true" />
+}
 
-<!-- El contenedor principal donde Angular inyectará tu aplicación -->
-<app-root></app-root>
+<!-- La app Angular (ClientApp) se monta acá. Para recompilarla: npm run build en ClientApp -->
+<app-root>
+    <div class="card-panel text-muted">Cargando panel del playón…</div>
+</app-root>
 
 @section Scripts {
-    <!-- Se mantiene igual porque tu _Layout sí tiene RenderSection("Scripts") -->
-    <script src="~/angular-app/browser/main.js" type="module"></script>
+    <script src="~/angular-app/browser/main.js" type="module" asp-append-version="true"></script>
 }

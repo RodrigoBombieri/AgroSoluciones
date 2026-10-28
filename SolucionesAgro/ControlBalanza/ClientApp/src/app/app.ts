@@ -1,11 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
+import { PlayonPanel } from './playon/playon-panel';
 
 @Component({
   selector: 'app-root',
-  imports: [],
-  templateUrl: './app.html',
-  styleUrl: './app.css',
+  imports: [PlayonPanel],
+  template: '<app-playon-panel />',
 })
-export class App {
-  protected readonly title = signal('Panel de Playón');
-}
+export class App {}

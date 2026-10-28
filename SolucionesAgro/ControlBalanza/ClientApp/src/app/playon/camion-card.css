@@ -1,0 +1,54 @@
+:host { display: block; }
+
+.camion {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #e49200;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgba(11, 28, 48, 0.06);
+  padding: 16px;
+}
+.camion.descargando { border-left-color: #0f3d5e; }
+.camion[aria-busy='true'] { opacity: 0.6; }
+
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.patente { font-family: 'JetBrains Mono', monospace; font-size: 1.4rem; font-weight: 600; color: #002741; }
+.acoplado { font-size: 12px; color: #42474e; }
+.demora {
+  font-size: 12px;
+  font-weight: 600;
+  background: #eff4ff;
+  color: #0f3d5e;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.demora.alta { background: #ffdad6; color: #93000a; }
+
+dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 12px 0; font-size: 14px; }
+dt { color: #42474e; font-weight: 500; }
+dd { margin: 0; overflow-wrap: anywhere; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.accion { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 12px; font-weight: 600; color: #42474e; }
+input {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 10px 12px;
+  font-size: 16px; /* evita zoom en iOS */
+}
+input:focus { outline: none; border-color: #002741; box-shadow: 0 0 0 2px rgba(0, 39, 65, 0.2); }
+
+.btn-accion {
+  min-height: 48px; /* objetivo táctil cómodo con guantes */
+  border: 0;
+  border-radius: 0.5rem;
+  background: #002741;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+.btn-accion.ok { background: #1b6d24; }
+.btn-accion:disabled { opacity: 0.6; cursor: wait; }

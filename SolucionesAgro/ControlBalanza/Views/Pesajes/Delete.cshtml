@@ -1,16 +1,22 @@
-@model ControlBalanza.Models.Pesaje
-
+@model Pesaje
 @{
     ViewData["Title"] = "Eliminar pesaje";
 }
 
-<h1 class="h3">Eliminar pesaje</h1>
-<div class="alert alert-warning">¿Seguro que querés eliminar este pesaje? Esta acción no se puede deshacer.</div>
+<div class="page-header">
+    <h1>Eliminar pesaje <span class="mono">@Model.NumeroCPE</span></h1>
+</div>
 
-<partial name="_DetallePesaje" model="Model" />
+<div class="alert alert-danger">
+    ¿Seguro que querés eliminar este pesaje? Se pierde del historial y de los reportes. Esta acción no se puede deshacer.
+</div>
+
+<div class="card-panel">
+    <partial name="_DetallePesaje" model="Model" />
+</div>
 
 <form asp-action="Delete" class="d-flex gap-2">
     <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Eliminar</button>
-    <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancelar</a>
 </form>

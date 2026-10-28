@@ -1,0 +1,155 @@
+@model ReporteViewModel
+@{
+    ViewData["Title"] = "Reportes";
+    var f = Model.Filtro;
+
+    // Querystring actual (sin la página) para paginar y exportar con los mismos filtros
+    var parametros = new Dictionary<string, string?>
+    {
+        ["Desde"] = f.Desde?.ToString("yyyy-MM-dd"),
+        ["Hasta"] = f.Hasta?.ToString("yyyy-MM-dd"),
+        ["ProveedorId"] = f.ProveedorId?.ToString(),
+        ["ProductoId"] = f.ProductoId?.ToString(),
+        ["Patente"] = f.Patente,
+        ["NumeroCPE"] = f.NumeroCPE,
+        ["Estado"] = f.Estado?.ToString(),
+        ["SoloConAlerta"] = f.SoloConAlerta ? "true" : null
+    }.Where(kv => !string.IsNullOrEmpty(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value!);
+
+    Dictionary<string, string> ConPagina(int pagina) => new(parametros) { ["Pagina"] = pagina.ToString() };
+
+    var diferenciaTotal = Model.TotalNetoKg - Model.TotalDeclaradoKg;
+
+    var estados = Html.GetEnumSelectList<EstadoPesaje>().ToList();
+    foreach (var e in estados) e.Selected = f.Estado.HasValue && e.Value == ((int)f.Estado.Value).ToString();
+}
+
+<div class="page-header">
+    <div>
+        <h1>Historial de pesajes</h1>
+        <p class="subtitle">Filtros para auditoría. Tolerancia de diferencia configurada: ±@Model.Tolerancia.ToString("0.##")%.</p>
+    </div>
+    <a asp-action="ExportarCsv" asp-all-route-data="parametros" class="btn btn-outline-primary">
+        <span class="material-symbols-outlined">download</span> Exportar CSV
+    </a>
+</div>
+
+<form method="get" asp-action="Index" class="card-panel compact">
+    <div class="row g-3 align-items-end">
+        <div class="col-6 col-md-3 col-xl-2">
+            <label asp-for="Filtro.Desde" class="form-label"></label>
+            <input name="Desde" type="date" value="@f.Desde?.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <label asp-for="Filtro.Hasta" class="form-label"></label>
+            <input name="Hasta" type="date" value="@f.Hasta?.ToString("yyyy-MM-dd")" class="form-control" />
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="ProveedorId">Proveedor / productor</label>
+            <select id="ProveedorId" name="ProveedorId" asp-items="ViewBag.Proveedores" class="form-select">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-md-4 col-xl-2">
+            <label class="form-label" for="ProductoId">Grano</label>
+            <select id="ProductoId" name="ProductoId" asp-items="ViewBag.Productos" class="form-select">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-md-4 col-xl-3">
+            <label class="form-label" for="Estado">Estado</label>
+            <select id="Estado" name="Estado" asp-items="estados" class="form-select">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <label class="form-label" for="Patente">Patente</label>
+            <input id="Patente" name="Patente" value="@f.Patente" class="form-control mono text-uppercase" />
+        </div>
+        <div class="col-6 col-md-4 col-xl-2">
+            <label class="form-label" for="NumeroCPE">Nº CPE</label>
+            <input id="NumeroCPE" name="NumeroCPE" value="@f.NumeroCPE" class="form-control mono" />
+        </div>
+        <div class="col-md-4 col-xl-3">
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="SoloConAlerta" name="SoloConAlerta" value="true" @(f.SoloConAlerta ? "checked" : "") />
+                <label class="form-check-label" for="SoloConAlerta">Solo diferencias fuera de tolerancia</label>
+            </div>
+        </div>
+        <div class="col-md-8 col-xl-5 d-flex gap-2 justify-content-xl-end">
+            <button type="submit" class="btn btn-primary"><span class="material-symbols-outlined">filter_alt</span> Filtrar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+        </div>
+    </div>
+</form>
+
+<div class="kpi-grid">
+    <div class="kpi"><span class="kpi-value">@Model.TotalRegistros</span><span class="kpi-label">Pesajes</span></div>
+    <div class="kpi"><span class="kpi-value">@((Model.TotalNetoKg / 1000).ToString("N1")) t</span><span class="kpi-label">Neto total</span></div>
+    <div class="kpi"><span class="kpi-value">@((Model.TotalDeclaradoKg / 1000).ToString("N1")) t</span><span class="kpi-label">Declarado (pesajes con neto)</span></div>
+    <div class="kpi"><span class="kpi-value">@diferenciaTotal.ToString("+#,0;-#,0;0")</span><span class="kpi-label">Diferencia neto vs. declarado (kg)</span></div>
+</div>
+
+<div class="card-panel compact">
+    <div class="table-responsive">
+        <table class="table table-data table-sm">
+            <thead>
+                <tr>
+                    <th>Entrada</th>
+                    <th>CPE</th>
+                    <th>Proveedor</th>
+                    <th>Grano</th>
+                    <th>Patente</th>
+                    <th class="text-end">Declarado</th>
+                    <th class="text-end">Neto</th>
+                    <th class="text-end">Dif. %</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Pesajes.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted py-4">No hay pesajes con esos filtros.</td></tr>
+                }
+                @foreach (var p in Model.Pesajes)
+                {
+                    var alerta = p.DiferenciaPorcentaje.HasValue && Math.Abs(p.DiferenciaPorcentaje.Value) > Model.Tolerancia;
+                    <tr>
+                        <td>@p.FechaEntrada.ToString("dd/MM/yy HH:mm")</td>
+                        <td class="mono">@p.NumeroCPE</td>
+                        <td>@p.Proveedor?.RazonSocial</td>
+                        <td>@p.Producto?.Nombre</td>
+                        <td class="mono">@p.PatenteCamion</td>
+                        <td class="text-end mono">@p.KilosDeclarados.ToString("N0")</td>
+                        <td class="text-end mono">@(p.PesoNeto?.ToString("N0") ?? "—")</td>
+                        <td class="text-end mono">
+                            @if (p.DiferenciaPorcentaje.HasValue)
+                            {
+                                <span class="@(alerta ? "estado badge-alerta" : "")">@p.DiferenciaPorcentaje.Value.ToString("+0.00;-0.00;0")</span>
+                            }
+                            else { <text>—</text> }
+                        </td>
+                        <td><span class="estado estado-@p.Estado">@VistaHelpers.Estado(p.Estado)</span></td>
+                        <td class="acciones"><a asp-controller="Pesajes" asp-action="Details" asp-route-id="@p.Id">Ver</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPaginas > 1)
+    {
+        <nav class="mt-3" aria-label="Paginación">
+            <ul class="pagination pagination-sm mb-0 flex-wrap">
+                <li class="page-item @(Model.Pagina <= 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-all-route-data="ConPagina(Model.Pagina - 1)">Anterior</a>
+                </li>
+                <li class="page-item disabled"><span class="page-link">Página @Model.Pagina de @Model.TotalPaginas</span></li>
+                <li class="page-item @(Model.Pagina >= Model.TotalPaginas ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-all-route-data="ConPagina(Model.Pagina + 1)">Siguiente</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

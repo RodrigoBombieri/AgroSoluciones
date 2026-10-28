@@ -1,4 +1,5 @@
 ﻿using ControlBalanza.Models;
+using ControlBalanza.Seguridad;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,64 +7,74 @@ namespace ControlBalanza.Data
 {
     public static class DbSeeder
     {
-        
-        public static async Task Seed(AgroDbContext context, UserManager<Usuario> userManager, RoleManager<IdentityRole> roleManager)
+        /// <summary>Contraseña de los usuarios de prueba (solo se crean en Development).</summary>
+        public const string PasswordUsuariosPrueba = "Agro1234";
+
+        public static async Task Seed(AgroDbContext context, UserManager<Usuario> userManager,
+            RoleManager<IdentityRole> roleManager, bool esDesarrollo)
         {
             // Aplica las migraciones pendientes (EnsureCreated ignoraría el historial de migraciones)
             await context.Database.MigrateAsync();
 
-            // Crear rol Admin si no existe
-            if (!await roleManager.RoleExistsAsync("Admin"))
+            // Roles
+            foreach (var rol in Roles.Todos)
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
+                if (!await roleManager.RoleExistsAsync(rol))
+                    await roleManager.CreateAsync(new IdentityRole(rol));
             }
 
-            // Crear usuario admin si no existe
-            var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
-            if (adminUser == null)
-            {
-                adminUser = new Usuario
-                {
-                    UserName = "admin@admin.com",
-                    Email = "admin@admin.com",
-                    Nombre = "Admin",
-                    Apellido = "Sistema",
-                    ImagenUrlPerfil = "/images/default-avatar.png"
-                };
+            // Usuario administrador
+            await CrearUsuarioSiNoExiste(userManager, "admin@admin.com", "Admin123", "Admin", "Sistema", Roles.Admin);
 
-                var result = await userManager.CreateAsync(adminUser, "Admin123");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
-                }
+            // Un usuario por rol para probar el circuito completo (solo en desarrollo)
+            if (esDesarrollo)
+            {
+                await CrearUsuarioSiNoExiste(userManager, "entrada@agro.local", PasswordUsuariosPrueba, "Operario", "Entrada", Roles.BalanzaEntrada);
+                await CrearUsuarioSiNoExiste(userManager, "playon@agro.local", PasswordUsuariosPrueba, "Operario", "Playón", Roles.Playon);
+                await CrearUsuarioSiNoExiste(userManager, "salida@agro.local", PasswordUsuariosPrueba, "Operario", "Salida", Roles.BalanzaSalida);
             }
 
-            // Sembrar Productos si no existen
-            if (!context.Productos.Any())
+            // Productos
+            if (!await context.Productos.AnyAsync())
             {
-                var productos = new List<Producto>
-                {
+                context.Productos.AddRange(
                     new Producto { Nombre = "Maíz", Variedad = "Común" },
                     new Producto { Nombre = "Soja", Variedad = "RR" },
-                    new Producto { Nombre = "Trigo", Variedad = "Panadero" }
-                };
-
-                context.Productos.AddRange(productos);
-                context.SaveChanges();
+                    new Producto { Nombre = "Trigo", Variedad = "Panadero" });
+                await context.SaveChangesAsync();
             }
 
-            // Sembrar Proveedores si no existen
-            if (!context.Proveedores.Any())
+            // Proveedores (CUIT de ejemplo con dígito verificador válido)
+            if (!await context.Proveedores.AnyAsync())
             {
-                var proveedores = new List<Proveedor>
-                {
-                    new Proveedor { RazonSocial = "Productora Uno", CUIT = "20-12345678-9", Localidad = "Rosario", Telefono = "341-1234567" },
-                    new Proveedor { RazonSocial = "Distribuidora Dos", CUIT = "27-87654321-0", Localidad = "Venado Tuerto", Telefono = "3462-765432" }
-                };
-
-                context.Proveedores.AddRange(proveedores);
-                context.SaveChanges();
+                context.Proveedores.AddRange(
+                    new Proveedor { RazonSocial = "Productora Uno", CUIT = "20-12345678-6", Localidad = "Rosario", Telefono = "341-1234567" },
+                    new Proveedor { RazonSocial = "Distribuidora Dos", CUIT = "30-71234567-1", Localidad = "Venado Tuerto", Telefono = "3462-765432" });
+                await context.SaveChangesAsync();
             }
+        }
+
+        private static async Task CrearUsuarioSiNoExiste(UserManager<Usuario> userManager, string email, string password,
+            string nombre, string apellido, string rol)
+        {
+            var usuario = await userManager.FindByEmailAsync(email);
+            if (usuario == null)
+            {
+                usuario = new Usuario
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true,
+                    Nombre = nombre,
+                    Apellido = apellido
+                };
+                var resultado = await userManager.CreateAsync(usuario, password);
+                if (!resultado.Succeeded)
+                    throw new InvalidOperationException($"No se pudo crear {email}: {string.Join(", ", resultado.Errors.Select(e => e.Description))}");
+            }
+
+            if (!await userManager.IsInRoleAsync(usuario, rol))
+                await userManager.AddToRoleAsync(usuario, rol);
         }
     }
 }

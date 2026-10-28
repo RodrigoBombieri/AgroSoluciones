@@ -1,30 +1,31 @@
-using ControlBalanza.Models;
-using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using ControlBalanza.Models;
+using ControlBalanza.Seguridad;
+using ControlBalanza.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ControlBalanza.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        private readonly ReportesService _reportes;
 
-        public IActionResult Playon()
-        {
-            return View();
-        }
+        public HomeController(ReportesService reportes) => _reportes = reportes;
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        // Dashboard con el estado de la planta
+        public async Task<IActionResult> Index() => View(await _reportes.ObtenerDashboardAsync());
 
+        // Panel del playón (app Angular)
+        [Authorize(Roles = Roles.AdminOPlayon)]
+        public IActionResult Playon() => View();
+
+        [AllowAnonymous]
+        public IActionResult Privacy() => View();
+
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        public IActionResult Error() =>
+            View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

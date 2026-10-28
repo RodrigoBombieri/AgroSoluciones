@@ -1,0 +1,14 @@
+@model Producto
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" placeholder="Soja, Maíz, Trigo…" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Variedad" class="form-label"></label>
+        <input asp-for="Variedad" class="form-control" />
+        <span asp-validation-for="Variedad" class="text-danger"></span>
+    </div>
+</div>

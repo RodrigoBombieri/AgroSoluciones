@@ -1,76 +1,132 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@using ControlBalanza.Seguridad
+@{
+    var autenticado = User.Identity?.IsAuthenticated == true;
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+
+    string Activo(string ctrl, string? act = null) =>
+        string.Equals(controlador, ctrl, StringComparison.OrdinalIgnoreCase) &&
+        (act == null || string.Equals(accion, act, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+
+    var esAdmin = User.IsInRole(Roles.Admin);
+    var esEntrada = esAdmin || User.IsInRole(Roles.BalanzaEntrada);
+    var esPlayon = esAdmin || User.IsInRole(Roles.Playon);
+    var esSalida = esAdmin || User.IsInRole(Roles.BalanzaSalida);
+}
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ControlBalanza</title>
+    <title>@ViewData["Title"] - AgroLogix</title>
     <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/fonts/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&amp;family=JetBrains+Mono:wght=500&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    @await RenderSectionAsync("Head", required: false)
 </head>
-<body>
-    <header>
-        <aside class="sidebar d-none d-lg-flex flex-column p-3 bg-dark text-white" style="width: 280px; height: 100vh; position: fixed;">
+<body class="@(autenticado ? "con-sidebar" : "sin-sidebar")">
+    @if (autenticado)
+    {
+        <!-- Barra superior (solo móvil/tablet) -->
+        <header class="topbar d-lg-none">
+            <button class="btn btn-icon" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Abrir menú">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <span class="topbar-brand">AgroLogix</span>
+        </header>
 
-            <div class="sidebar-brand mb-4">
-                <h1 class="h4 mb-0 text-white">AgroLogix</h1>
-                <small class="text-white-50" style="font-size: 12px;">Logistics Management</small>
+        <aside id="sidebar" class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" aria-label="Menú principal">
+            <div class="sidebar-brand">
+                <span class="material-symbols-outlined brand-icon">scale</span>
+                <div>
+                    <div class="brand-name">AgroLogix</div>
+                    <small>Control de balanza</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Cerrar"></button>
             </div>
-            <ul class="nav nav-pills flex-column mb-auto">
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
-                        <span class="material-symbols-outlined">home</span>
-                        Inicio
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Pesajes" asp-action="Index">
-                        <span class="material-symbols-outlined">move_to_inbox</span>
-                        Recepción
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Pesajes" asp-action="Index">
-                        <span class="material-symbols-outlined">scale</span>
-                        Pesaje
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
-                        <span class="material-symbols-outlined">local_shipping</span>
-                        Descargas
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
-                        <span class="material-symbols-outlined">analytics</span>
-                        Reportes
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Playon">
-                        <span class="material-symbols-outlined">settings</span>
-                        Administración
-                    </a>
-                </li>
-            </ul>
-        </aside>
-    </header>
 
-    <div class="container-content" style="margin-left: 300px; padding: 20px;">
-        <main role="main" class="pb-3">
+            <nav class="sidebar-nav">
+                <a class="nav-item @Activo("Home", "Index")" asp-controller="Home" asp-action="Index">
+                    <span class="material-symbols-outlined">dashboard</span> Inicio
+                </a>
+
+                <div class="nav-section">Operación</div>
+                @if (esEntrada)
+                {
+                    <a class="nav-item @Activo("Pesajes", "Create")" asp-controller="Pesajes" asp-action="Create">
+                        <span class="material-symbols-outlined">input</span> Balanza entrada
+                    </a>
+                }
+                @if (esPlayon)
+                {
+                    <a class="nav-item @Activo("Home", "Playon")" asp-controller="Home" asp-action="Playon">
+                        <span class="material-symbols-outlined">local_shipping</span> Playón / Descarga
+                    </a>
+                }
+                @if (esSalida)
+                {
+                    <a class="nav-item @(Activo("Pesajes", "Salida") + Activo("Pesajes", "RegistrarSalida"))" asp-controller="Pesajes" asp-action="Salida">
+                        <span class="material-symbols-outlined">output</span> Balanza salida
+                    </a>
+                }
+                <a class="nav-item @Activo("Pesajes", "Index")" asp-controller="Pesajes" asp-action="Index">
+                    <span class="material-symbols-outlined">warehouse</span> Camiones en planta
+                </a>
+
+                @if (esAdmin)
+                {
+                    <div class="nav-section">Administración</div>
+                    <a class="nav-item @Activo("Reportes")" asp-controller="Reportes" asp-action="Index">
+                        <span class="material-symbols-outlined">analytics</span> Reportes
+                    </a>
+                    <a class="nav-item @Activo("Proveedores")" asp-controller="Proveedores" asp-action="Index">
+                        <span class="material-symbols-outlined">agriculture</span> Proveedores
+                    </a>
+                    <a class="nav-item @Activo("Productos")" asp-controller="Productos" asp-action="Index">
+                        <span class="material-symbols-outlined">grass</span> Productos
+                    </a>
+                    <a class="nav-item @Activo("Usuarios")" asp-controller="Usuarios" asp-action="Index">
+                        <span class="material-symbols-outlined">group</span> Usuarios
+                    </a>
+                }
+            </nav>
+
+            <div class="sidebar-user">
+                <span class="material-symbols-outlined">account_circle</span>
+                <div class="user-name" title="@User.Identity?.Name">@User.Identity?.Name</div>
+                <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+                    <button type="submit" class="btn btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión">
+                        <span class="material-symbols-outlined">logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+    }
+
+    <div class="app-content">
+        <main role="main">
+            @if (TempData["Exito"] is string exito)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @exito
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @error
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+            }
             @RenderBody()
         </main>
-    </div>
 
-    <footer class="border-top footer text-muted" style="margin-left: 300px;">
-        <div class="container">
-            &copy; 2026 - ControlBalanza - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
+        <footer class="app-footer">
+            &copy; @DateTime.Now.Year AgroLogix · Control de Balanza
+        </footer>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

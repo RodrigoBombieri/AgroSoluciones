@@ -1,0 +1,47 @@
+<section class="panel">
+  <header class="panel-header">
+    <div>
+      <h1>Playón / Descarga</h1>
+      <p class="subtitulo">
+        {{ camiones().length }} camión(es) en el playón
+        @if (ultimaActualizacion(); as fecha) {
+          · actualizado {{ fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}
+        }
+      </p>
+    </div>
+    <button type="button" class="btn-refrescar" (click)="cargar()">Actualizar</button>
+  </header>
+
+  @if (error(); as mensaje) {
+    <div class="mensaje error" role="alert">{{ mensaje }}</div>
+  }
+  @if (aviso(); as mensaje) {
+    <div class="mensaje ok" role="status">
+      {{ mensaje }}
+      <button type="button" class="cerrar" (click)="aviso.set(null)" aria-label="Cerrar">×</button>
+    </div>
+  }
+
+  @if (cargando()) {
+    <p class="vacio">Cargando camiones…</p>
+  } @else {
+    <div class="columnas">
+      <div class="columna">
+        <h2>En espera <span class="contador">{{ enEspera().length }}</span></h2>
+        @for (c of enEspera(); track c.id) {
+          <app-camion-card [camion]="c" [ocupado]="ocupados().has(c.id)" (iniciar)="iniciar($event)" />
+        } @empty {
+          <p class="vacio">No hay camiones esperando.</p>
+        }
+      </div>
+      <div class="columna">
+        <h2>Descargando <span class="contador">{{ enDescarga().length }}</span></h2>
+        @for (c of enDescarga(); track c.id) {
+          <app-camion-card [camion]="c" [ocupado]="ocupados().has(c.id)" (finalizar)="finalizar($event)" />
+        } @empty {
+          <p class="vacio">No hay camiones descargando.</p>
+        }
+      </div>
+    </div>
+  }
+</section>

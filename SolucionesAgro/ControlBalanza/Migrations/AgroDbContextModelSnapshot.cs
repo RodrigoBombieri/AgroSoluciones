@@ -51,6 +51,10 @@ namespace ControlBalanza.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("PatenteAcoplado")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -77,6 +81,10 @@ namespace ControlBalanza.Migrations
                     b.Property<int>("ProveedorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("SiloDestino")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("UsuarioBalanzaEntradaId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -88,6 +96,13 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("FechaEntrada");
+
+                    b.HasIndex("NumeroCPE")
+                        .IsUnique();
 
                     b.HasIndex("ProductoId");
 
@@ -151,6 +166,9 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CUIT")
+                        .IsUnique();
 
                     b.ToTable("Proveedores");
                 });
@@ -378,13 +396,13 @@ namespace ControlBalanza.Migrations
                     b.HasOne("ControlBalanza.Models.Producto", "Producto")
                         .WithMany()
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ControlBalanza.Models.Proveedor", "Proveedor")
                         .WithMany("Pesajes")
                         .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ControlBalanza.Models.Usuario", "UsuarioBalanzaEntrada")

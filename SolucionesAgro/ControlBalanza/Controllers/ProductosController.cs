@@ -1,152 +1,103 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ControlBalanza.Models;
 using ControlBalanza.Data;
+using ControlBalanza.Models;
+using ControlBalanza.Seguridad;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ControlBalanza.Controllers
 {
+    [Authorize(Roles = Roles.Admin)]
     public class ProductosController : Controller
     {
         private readonly AgroDbContext _context;
 
-        public ProductosController(AgroDbContext context)
-        {
-            _context = context;
-        }
+        public ProductosController(AgroDbContext context) => _context = context;
 
-        // GET: PRODUCTOS
-        public async Task<IActionResult> Index()    
-        {
-            return View(await _context.Productos.ToListAsync());
-        }
+        public async Task<IActionResult> Index() =>
+            View(await _context.Productos.AsNoTracking().OrderBy(p => p.Nombre).ThenBy(p => p.Variedad).ToListAsync());
 
-        // GET: PRODUCTOS/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+            var producto = await _context.Productos.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+            if (producto == null) return NotFound();
 
-            var producto = await _context.Productos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (producto == null)
-            {
-                return NotFound();
-            }
-
+            ViewData["CantidadPesajes"] = await _context.Pesajes.CountAsync(p => p.ProductoId == id);
             return View(producto);
         }
 
-        // GET: PRODUCTOS/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View(new Producto());
 
-        // POST: PRODUCTOS/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Variedad")] Producto producto)
+        public async Task<IActionResult> Create([Bind("Nombre,Variedad")] Producto producto)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(producto);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(producto);
+            if (!ModelState.IsValid) return View(producto);
+
+            _context.Add(producto);
+            await _context.SaveChangesAsync();
+            TempData["Exito"] = $"Producto {producto.Nombre} creado.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: PRODUCTOS/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
             var producto = await _context.Productos.FindAsync(id);
-            if (producto == null)
-            {
-                return NotFound();
-            }
+            if (producto == null) return NotFound();
             return View(producto);
         }
 
-        // POST: PRODUCTOS/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int? id, [Bind("Id,Nombre,Variedad")] Producto producto)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Variedad")] Producto producto)
         {
-            if (id != producto.Id)
-            {
-                return NotFound();
-            }
+            if (id != producto.Id) return NotFound();
+            if (!ModelState.IsValid) return View(producto);
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    _context.Update(producto);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductoExists(producto.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                _context.Update(producto);
+                await _context.SaveChangesAsync();
             }
-            return View(producto);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.Productos.AnyAsync(e => e.Id == id)) return NotFound();
+                throw;
+            }
+            TempData["Exito"] = "Producto actualizado.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: PRODUCTOS/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+            var producto = await _context.Productos.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+            if (producto == null) return NotFound();
 
-            var producto = await _context.Productos
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (producto == null)
-            {
-                return NotFound();
-            }
-
+            ViewData["CantidadPesajes"] = await _context.Pesajes.CountAsync(p => p.ProductoId == id);
             return View(producto);
         }
 
-        // POST: PRODUCTOS/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int? id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (await _context.Pesajes.AnyAsync(p => p.ProductoId == id))
+            {
+                TempData["Error"] = "No se puede eliminar: el producto tiene pesajes registrados.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var producto = await _context.Productos.FindAsync(id);
             if (producto != null)
             {
                 _context.Productos.Remove(producto);
+                await _context.SaveChangesAsync();
+                TempData["Exito"] = $"Producto {producto.Nombre} eliminado.";
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ProductoExists(int? id)
-        {
-            return _context.Productos.Any(e => e.Id == id);
         }
     }
 }

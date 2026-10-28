@@ -1,30 +1,32 @@
-@model ControlBalanza.Models.Pesaje
-
+@model Pesaje
 @{
-    ViewData["Title"] = "Editar pesaje";
+    ViewData["Title"] = "Corregir pesaje";
 }
 
-<h1 class="h3">Editar pesaje <span class="font-monospace">@Model.NumeroCPE</span></h1>
-<p class="text-muted">Entrada: @Model.FechaEntrada.ToString("dd/MM/yyyy HH:mm")</p>
-<hr />
+<div class="page-header">
+    <div>
+        <h1>Corregir pesaje <span class="mono">@Model.NumeroCPE</span></h1>
+        <p class="subtitle">Corrección administrativa. Entrada: @VistaHelpers.Fecha(Model.FechaEntrada). Para el circuito normal use las pantallas de balanza y playón.</p>
+    </div>
+</div>
 
-<form asp-action="Edit" asp-route-id="@Model.Id">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<form asp-action="Edit" asp-route-id="@Model.Id" class="card-panel">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     <div class="row g-3">
         <div class="col-md-4">
             <label asp-for="NumeroCPE" class="form-label"></label>
-            <input asp-for="NumeroCPE" class="form-control font-monospace" />
+            <input asp-for="NumeroCPE" class="form-control mono" />
             <span asp-validation-for="NumeroCPE" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PatenteCamion" class="form-label"></label>
-            <input asp-for="PatenteCamion" class="form-control font-monospace text-uppercase" />
+            <input asp-for="PatenteCamion" class="form-control mono text-uppercase" />
             <span asp-validation-for="PatenteCamion" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PatenteAcoplado" class="form-label"></label>
-            <input asp-for="PatenteAcoplado" class="form-control font-monospace text-uppercase" />
+            <input asp-for="PatenteAcoplado" class="form-control mono text-uppercase" />
             <span asp-validation-for="PatenteAcoplado" class="text-danger"></span>
         </div>
 
@@ -39,12 +41,17 @@
             <span asp-validation-for="ProductoId" class="text-danger"></span>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <label asp-for="NombreChofer" class="form-label"></label>
             <input asp-for="NombreChofer" class="form-control" />
             <span asp-validation-for="NombreChofer" class="text-danger"></span>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <label asp-for="SiloDestino" class="form-label"></label>
+            <input asp-for="SiloDestino" class="form-control" />
+            <span asp-validation-for="SiloDestino" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
             <label asp-for="Estado" class="form-label"></label>
             <select asp-for="Estado" asp-items="Html.GetEnumSelectList<EstadoPesaje>()" class="form-select"></select>
             <span asp-validation-for="Estado" class="text-danger"></span>
@@ -52,27 +59,33 @@
 
         <div class="col-md-4">
             <label asp-for="KilosDeclarados" class="form-label"></label>
-            <input asp-for="KilosDeclarados" class="form-control font-monospace" />
+            <input asp-for="KilosDeclarados" class="form-control mono" />
             <span asp-validation-for="KilosDeclarados" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PesoBruto" class="form-label"></label>
-            <input asp-for="PesoBruto" class="form-control font-monospace" />
+            <input asp-for="PesoBruto" class="form-control mono" />
             <span asp-validation-for="PesoBruto" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PesoTara" class="form-label"></label>
-            <input asp-for="PesoTara" class="form-control font-monospace" />
+            <input asp-for="PesoTara" class="form-control mono" />
             <span asp-validation-for="PesoTara" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Observaciones" class="form-label"></label>
+            <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Observaciones" class="text-danger"></span>
         </div>
     </div>
 
     <div class="mt-4 d-flex gap-2">
         <button type="submit" class="btn btn-primary">Guardar</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancelar</a>
     </div>
 </form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

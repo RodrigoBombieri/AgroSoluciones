@@ -1,0 +1,8 @@
+@model Proveedor
+<dl class="row dl-compacta mb-0">
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.RazonSocial)</dt><dd class="col-sm-9">@Model.RazonSocial</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CUIT)</dt><dd class="col-sm-9 mono">@Model.CUIT</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Localidad)</dt><dd class="col-sm-9">@(Model.Localidad ?? "—")</dd>
+    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Telefono)</dt><dd class="col-sm-9">@(Model.Telefono ?? "—")</dd>
+    <dt class="col-sm-3">Pesajes registrados</dt><dd class="col-sm-9">@ViewData["CantidadPesajes"]</dd>
+</dl>

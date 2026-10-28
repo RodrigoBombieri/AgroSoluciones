@@ -1,53 +1,53 @@
-﻿@model IEnumerable<ControlBalanza.Models.Proveedor>
-
+@model IEnumerable<Proveedor>
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Proveedores";
 }
 
-<h1>Index</h1>
+<div class="page-header">
+    <div>
+        <h1>Proveedores</h1>
+        <p class="subtitle">Productores y remitentes. El CUIT se usa para reconocerlos al leer la CPE.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><span class="material-symbols-outlined">add</span> Nuevo proveedor</a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.RazonSocial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CUIT)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Localidad)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Telefono)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.RazonSocial)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.CUIT)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Localidad)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Telefono)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<form method="get" class="mb-3 d-flex gap-2" style="max-width: 480px">
+    <input name="buscar" value="@ViewData["Buscar"]" class="form-control" placeholder="Buscar por razón social, CUIT o localidad" />
+    <button class="btn btn-outline-primary" type="submit">Buscar</button>
+</form>
+
+<div class="card-panel compact">
+    <div class="table-responsive">
+        <table class="table table-data">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(m => m.RazonSocial)</th>
+                    <th>@Html.DisplayNameFor(m => m.CUIT)</th>
+                    <th>@Html.DisplayNameFor(m => m.Localidad)</th>
+                    <th>@Html.DisplayNameFor(m => m.Telefono)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">No hay proveedores.</td></tr>
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.RazonSocial</td>
+                        <td class="mono">@item.CUIT</td>
+                        <td>@item.Localidad</td>
+                        <td>@item.Telefono</td>
+                        <td class="acciones">
+                            <a asp-action="Details" asp-route-id="@item.Id">Ver</a> ·
+                            <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> ·
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

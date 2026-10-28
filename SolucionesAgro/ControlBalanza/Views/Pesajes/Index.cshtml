@@ -1,54 +1,64 @@
-@model IEnumerable<ControlBalanza.Models.Pesaje>
-
+@model IEnumerable<Pesaje>
 @{
-    ViewData["Title"] = "Pesajes";
+    ViewData["Title"] = "Camiones en planta";
+    var ahora = DateTime.Now;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Pesajes</h1>
-    <a asp-action="Create" class="btn btn-primary">Nuevo ingreso</a>
+<div class="page-header">
+    <div>
+        <h1>Camiones en planta</h1>
+        <p class="subtitle">@Model.Count() camión(es) sin salida registrada, por orden de llegada.</p>
+    </div>
+    @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.BalanzaEntrada))
+    {
+        <a asp-action="Create" class="btn btn-primary"><span class="material-symbols-outlined">add</span> Nuevo ingreso</a>
+    }
 </div>
 
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead>
-            <tr>
-                <th>@Html.DisplayNameFor(m => m.NumeroCPE)</th>
-                <th>@Html.DisplayNameFor(m => m.FechaEntrada)</th>
-                <th>@Html.DisplayNameFor(m => m.PatenteCamion)</th>
-                <th>@Html.DisplayNameFor(m => m.ProveedorId)</th>
-                <th>@Html.DisplayNameFor(m => m.ProductoId)</th>
-                <th class="text-end">@Html.DisplayNameFor(m => m.PesoBruto)</th>
-                <th class="text-end">@Html.DisplayNameFor(m => m.PesoTara)</th>
-                <th class="text-end">@Html.DisplayNameFor(m => m.PesoNeto)</th>
-                <th>@Html.DisplayNameFor(m => m.Estado)</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr><td colspan="10" class="text-center text-muted py-4">No hay pesajes registrados.</td></tr>
-            }
-            @foreach (var item in Model)
-            {
+<div class="card-panel compact">
+    <div class="table-responsive">
+        <table class="table table-data">
+            <thead>
                 <tr>
-                    <td class="font-monospace">@item.NumeroCPE</td>
-                    <td>@item.FechaEntrada.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td class="font-monospace">@item.PatenteCamion</td>
-                    <td>@item.Proveedor?.RazonSocial</td>
-                    <td>@item.Producto?.Nombre</td>
-                    <td class="text-end font-monospace">@item.PesoBruto?.ToString("N0")</td>
-                    <td class="text-end font-monospace">@item.PesoTara?.ToString("N0")</td>
-                    <td class="text-end font-monospace">@item.PesoNeto?.ToString("N0")</td>
-                    <td><span class="badge rounded-pill text-bg-secondary">@Html.DisplayFor(m => item.Estado)</span></td>
-                    <td class="text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id">Ver</a> |
-                        <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Eliminar</a>
-                    </td>
+                    <th>CPE</th>
+                    <th>Entrada</th>
+                    <th>En planta</th>
+                    <th>Patente</th>
+                    <th>Proveedor</th>
+                    <th>Producto</th>
+                    <th class="text-end">Bruto</th>
+                    <th>Silo</th>
+                    <th>Estado</th>
+                    <th></th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="10" class="text-center text-muted py-4">No hay camiones en planta.</td></tr>
+                }
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="mono">@p.NumeroCPE</td>
+                        <td>@p.FechaEntrada.ToString("dd/MM HH:mm")</td>
+                        <td>@VistaHelpers.Duracion((ahora - p.FechaEntrada).TotalMinutes)</td>
+                        <td class="mono">@p.PatenteCamion</td>
+                        <td>@p.Proveedor?.RazonSocial</td>
+                        <td>@p.Producto?.Nombre</td>
+                        <td class="text-end mono">@VistaHelpers.Kg(p.PesoBruto)</td>
+                        <td>@(p.SiloDestino ?? "—")</td>
+                        <td><span class="estado estado-@p.Estado">@VistaHelpers.Estado(p.Estado)</span></td>
+                        <td class="acciones">
+                            @if (p.Estado == EstadoPesaje.ListoSalida && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.BalanzaSalida)))
+                            {
+                                <a asp-action="RegistrarSalida" asp-route-id="@p.Id" class="btn btn-sm btn-success">Pesar tara</a>
+                            }
+                            <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary">Ver</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

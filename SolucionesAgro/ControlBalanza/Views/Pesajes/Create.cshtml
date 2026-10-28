@@ -1,30 +1,69 @@
-@model ControlBalanza.Models.Pesaje
-
+@model Pesaje
 @{
-    ViewData["Title"] = "Nuevo ingreso";
+    ViewData["Title"] = "Balanza de entrada";
+    var iaDisponible = ViewBag.IADisponible as bool? ?? false;
 }
 
-<h1 class="h3">Nuevo ingreso — Balanza de entrada</h1>
-<p class="text-muted">La fecha de entrada, el estado y el usuario de balanza se registran automáticamente.</p>
-<hr />
+<div class="page-header">
+    <div>
+        <h1>Balanza de entrada</h1>
+        <p class="subtitle">Registre la CPE y el peso bruto. Fecha, estado y operario se guardan automáticamente.</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-primary">Camiones en planta</a>
+</div>
 
-<form asp-action="Create">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<!-- Paso 1: lectura de la Carta de Porte -->
+<div class="card-panel">
+    <div class="panel-title"><span class="material-symbols-outlined">qr_code_scanner</span> 1. Leer la Carta de Porte</div>
+
+    <div class="cpe-captura">
+        <button type="button" id="btn-escanear" class="btn btn-primary">
+            <span class="material-symbols-outlined">photo_camera</span> Escanear QR con cámara
+        </button>
+        <label class="btn btn-outline-primary mb-0">
+            <span class="material-symbols-outlined">qr_code</span> QR desde imagen
+            <input type="file" id="archivo-qr" accept="image/*" hidden />
+        </label>
+        @if (iaDisponible)
+        {
+            <label class="btn btn-outline-primary mb-0" title="Saca una foto de la CPE y la IA extrae los datos">
+                <span class="material-symbols-outlined">document_scanner</span> Leer foto con IA
+                <input type="file" id="archivo-ia" accept="image/jpeg,image/png,image/webp" capture="environment" hidden />
+            </label>
+        }
+        else
+        {
+            <button type="button" class="btn btn-outline-secondary" disabled title="Configure la sección AzureOpenAI en appsettings.json">
+                <span class="material-symbols-outlined">document_scanner</span> Leer con IA (no configurada)
+            </button>
+        }
+        <button type="button" id="btn-detener" class="btn btn-outline-secondary d-none">Detener cámara</button>
+    </div>
+
+    <div id="lector-qr"></div>
+    <div id="cpe-estado" class="mt-3 small text-muted" role="status" aria-live="polite"></div>
+    <div id="cpe-avisos" class="cpe-avisos alert alert-warning mt-3 mb-0 small"></div>
+</div>
+
+<!-- Paso 2: datos del ingreso -->
+<form asp-action="Create" id="form-ingreso" class="card-panel">
+    <div class="panel-title"><span class="material-symbols-outlined">edit_note</span> 2. Confirmar datos y pesar</div>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     <div class="row g-3">
         <div class="col-md-4">
             <label asp-for="NumeroCPE" class="form-label"></label>
-            <input asp-for="NumeroCPE" class="form-control font-monospace" autofocus />
+            <input asp-for="NumeroCPE" class="form-control mono" autocomplete="off" />
             <span asp-validation-for="NumeroCPE" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PatenteCamion" class="form-label"></label>
-            <input asp-for="PatenteCamion" class="form-control font-monospace text-uppercase" />
+            <input asp-for="PatenteCamion" class="form-control mono text-uppercase" autocomplete="off" placeholder="AA123BB" />
             <span asp-validation-for="PatenteCamion" class="text-danger"></span>
         </div>
         <div class="col-md-4">
             <label asp-for="PatenteAcoplado" class="form-label"></label>
-            <input asp-for="PatenteAcoplado" class="form-control font-monospace text-uppercase" />
+            <input asp-for="PatenteAcoplado" class="form-control mono text-uppercase" autocomplete="off" />
             <span asp-validation-for="PatenteAcoplado" class="text-danger"></span>
         </div>
 
@@ -43,29 +82,34 @@
             <span asp-validation-for="ProductoId" class="text-danger"></span>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <label asp-for="NombreChofer" class="form-label"></label>
             <input asp-for="NombreChofer" class="form-control" />
             <span asp-validation-for="NombreChofer" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
-            <label asp-for="KilosDeclarados" class="form-label"></label>
-            <input asp-for="KilosDeclarados" class="form-control font-monospace" />
+        <div class="col-md-6">
+            <label asp-for="KilosDeclarados" class="form-label">Kilos declarados en la CPE</label>
+            <input asp-for="KilosDeclarados" class="form-control mono" inputmode="numeric" />
             <span asp-validation-for="KilosDeclarados" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
-            <label asp-for="PesoBruto" class="form-label"></label>
-            <input asp-for="PesoBruto" class="form-control font-monospace" />
+
+        <div class="col-12">
+            <label asp-for="PesoBruto" class="form-label">Peso bruto en balanza (kg)</label>
+            <input asp-for="PesoBruto" class="form-control input-xl" inputmode="numeric" placeholder="0" />
             <span asp-validation-for="PesoBruto" class="text-danger"></span>
         </div>
     </div>
 
     <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Registrar ingreso</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+        <button type="submit" class="btn btn-success btn-lg">
+            <span class="material-symbols-outlined">check</span> Registrar ingreso
+        </button>
+        <button type="reset" class="btn btn-outline-secondary btn-lg">Limpiar</button>
     </div>
 </form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script src="~/lib/html5-qrcode/html5-qrcode.min.js"></script>
+    <script src="~/js/ingreso-cpe.js" asp-append-version="true"></script>
 }

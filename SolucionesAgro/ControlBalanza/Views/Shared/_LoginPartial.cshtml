@@ -1,0 +1,5 @@
+@* Requerido por las páginas de "Administrar cuenta" de Identity UI. El menú de usuario real está en _Layout. *@
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <span class="text-muted small">@User.Identity.Name</span>
+}

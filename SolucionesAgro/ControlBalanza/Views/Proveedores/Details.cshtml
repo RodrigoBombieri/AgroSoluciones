@@ -1,46 +1,17 @@
-﻿@model ControlBalanza.Models.Proveedor
-
+@model Proveedor
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.RazonSocial;
 }
 
-<h1>Details</h1>
+<div class="page-header">
+    <h1>@Model.RazonSocial</h1>
+    <div class="d-flex gap-2">
+        <a asp-controller="Reportes" asp-action="Index" asp-route-ProveedorId="@Model.Id" class="btn btn-outline-primary">Ver pesajes</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    </div>
+</div>
 
-<div>
-    <h4>Proveedor</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.RazonSocial)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.RazonSocial)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CUIT)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CUIT)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Localidad)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Localidad)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Telefono)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Telefono)
-        </dd>
-    </dl>
-    </dl>
+<div class="card-panel" style="max-width: 720px">
+    <partial name="_Detalle" model="Model" />
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<a asp-action="Index">← Volver al listado</a>

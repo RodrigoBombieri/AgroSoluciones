@@ -1,0 +1,24 @@
+@model Proveedor
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="RazonSocial" class="form-label"></label>
+        <input asp-for="RazonSocial" class="form-control" />
+        <span asp-validation-for="RazonSocial" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="CUIT" class="form-label"></label>
+        <input asp-for="CUIT" class="form-control mono" placeholder="20-12345678-6" />
+        <span asp-validation-for="CUIT" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Localidad" class="form-label"></label>
+        <input asp-for="Localidad" class="form-control" />
+        <span asp-validation-for="Localidad" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Telefono" class="form-label"></label>
+        <input asp-for="Telefono" class="form-control" />
+        <span asp-validation-for="Telefono" class="text-danger"></span>
+    </div>
+</div>

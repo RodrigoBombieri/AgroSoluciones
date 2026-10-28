@@ -1,31 +1,20 @@
-@model ControlBalanza.Models.Producto
-
+@model Producto
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Nombre;
 }
 
-<h1>Details</h1>
+<div class="page-header">
+    <h1>@Model.Nombre</h1>
+    <div class="d-flex gap-2">
+        <a asp-controller="Reportes" asp-action="Index" asp-route-ProductoId="@Model.Id" class="btn btn-outline-primary">Ver pesajes</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    </div>
+</div>
 
-<div>
-    <h4>Producto</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nombre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nombre)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Variedad)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Variedad)
-        </dd>
+<div class="card-panel" style="max-width: 720px">
+    <dl class="row dl-compacta mb-0">
+        <dt class="col-sm-4">Variedad</dt><dd class="col-sm-8">@(Model.Variedad ?? "—")</dd>
+        <dt class="col-sm-4">Pesajes registrados</dt><dd class="col-sm-8">@ViewData["CantidadPesajes"]</dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<a asp-action="Index">← Volver al listado</a>

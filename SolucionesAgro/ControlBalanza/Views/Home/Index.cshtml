@@ -1,14 +1,158 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Inicio";
+    var enPlanta = Model.EnEspera + Model.EnDescarga + Model.ListosSalida;
 }
 
+<div class="page-header">
+    <div>
+        <h1>Estado de la planta</h1>
+        <p class="subtitle">@DateTime.Now.ToString("dddd dd/MM/yyyy HH:mm")</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.BalanzaEntrada))
+        {
+            <a asp-controller="Pesajes" asp-action="Create" class="btn btn-primary">
+                <span class="material-symbols-outlined">add</span> Nuevo ingreso
+            </a>
+        }
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Playon))
+        {
+            <a asp-action="Playon" class="btn btn-outline-primary">Panel playón</a>
+        }
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.BalanzaSalida))
+        {
+            <a asp-controller="Pesajes" asp-action="Salida" class="btn btn-outline-primary">Balanza salida</a>
+        }
+    </div>
+</div>
 
+<div class="kpi-grid">
+    <div class="kpi">
+        <span class="kpi-icon"><span class="material-symbols-outlined">warehouse</span></span>
+        <span class="kpi-value">@enPlanta</span>
+        <span class="kpi-label">Camiones en planta</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon warn"><span class="material-symbols-outlined">hourglass_top</span></span>
+        <span class="kpi-value">@Model.EnEspera</span>
+        <span class="kpi-label">En espera de descarga</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon"><span class="material-symbols-outlined">local_shipping</span></span>
+        <span class="kpi-value">@Model.EnDescarga</span>
+        <span class="kpi-label">Descargando</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon"><span class="material-symbols-outlined">output</span></span>
+        <span class="kpi-value">@Model.ListosSalida</span>
+        <span class="kpi-label">Listos para salir</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon ok"><span class="material-symbols-outlined">task_alt</span></span>
+        <span class="kpi-value">@Model.CompletadosHoy<small class="fs-6 text-muted"> / @Model.IngresosHoy</small></span>
+        <span class="kpi-label">Completados / ingresados hoy</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon ok"><span class="material-symbols-outlined">scale</span></span>
+        <span class="kpi-value">@((Model.NetoHoyKg / 1000).ToString("N1")) t</span>
+        <span class="kpi-label">Neto recibido hoy</span>
+    </div>
+    <div class="kpi">
+        <span class="kpi-icon"><span class="material-symbols-outlined">timer</span></span>
+        <span class="kpi-value">@VistaHelpers.Duracion(Model.DemoraPromedioMinutos)</span>
+        <span class="kpi-label">Demora promedio en planta (hoy)</span>
+    </div>
+</div>
 
-<div class="main-wrapper">
-    <div class="content-container">
-        <div class="text-center">
-            <h1 class="display-4">Welcome</h1>
-            <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row g-4">
+    <div class="col-xl-7">
+        <div class="card-panel">
+            <h2><span class="material-symbols-outlined">history</span> Últimos movimientos</h2>
+            <div class="table-responsive">
+                <table class="table table-data">
+                    <thead>
+                        <tr>
+                            <th>CPE</th>
+                            <th>Patente</th>
+                            <th>Proveedor</th>
+                            <th>Estado</th>
+                            <th class="text-end">Neto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.UltimosMovimientos.Any())
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">Todavía no hay pesajes.</td></tr>
+                        }
+                        @foreach (var p in Model.UltimosMovimientos)
+                        {
+                            <tr>
+                                <td class="mono"><a asp-controller="Pesajes" asp-action="Details" asp-route-id="@p.Id">@p.NumeroCPE</a></td>
+                                <td class="mono">@p.PatenteCamion</td>
+                                <td>@p.Proveedor?.RazonSocial</td>
+                                <td><span class="estado estado-@p.Estado">@VistaHelpers.Estado(p.Estado)</span></td>
+                                <td class="text-end mono">@VistaHelpers.Kg(p.PesoNeto)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-5">
+        <div class="card-panel">
+            <h2><span class="material-symbols-outlined">grass</span> Recibido hoy por producto</h2>
+            @if (!Model.PorProductoHoy.Any())
+            {
+                <p class="text-muted mb-0">Sin descargas completadas hoy.</p>
+            }
+            else
+            {
+                var maximo = Model.PorProductoHoy.Max(t => t.NetoKg);
+                foreach (var t in Model.PorProductoHoy)
+                {
+                    var porcentaje = maximo > 0 ? t.NetoKg / maximo * 100 : 0;
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>@t.Producto</strong>
+                            <span class="mono">@VistaHelpers.Kg(t.NetoKg) · @t.Camiones cam.</span>
+                        </div>
+                        <div class="progress" role="progressbar" aria-label="@t.Producto" aria-valuenow="@((int)porcentaje)" aria-valuemin="0" aria-valuemax="100" style="height: 8px">
+                            <div class="progress-bar bg-success" style="width: @(porcentaje.ToString(System.Globalization.CultureInfo.InvariantCulture))%"></div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="card-panel">
+            <h2><span class="material-symbols-outlined text-danger">warning</span> Diferencias fuera de tolerancia (7 días)</h2>
+            <p class="text-muted small">Neto real vs. kilos declarados en la CPE, tolerancia ±@Model.Tolerancia.ToString("0.##")%.</p>
+            @if (!Model.Alertas.Any())
+            {
+                <p class="mb-0">Sin alertas.</p>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-0">
+                    @foreach (var a in Model.Alertas)
+                    {
+                        <li class="d-flex justify-content-between border-bottom py-2">
+                            <span>
+                                <a asp-controller="Pesajes" asp-action="Details" asp-route-id="@a.Id" class="mono">@a.NumeroCPE</a>
+                                <small class="text-muted d-block">@a.Proveedor?.RazonSocial</small>
+                            </span>
+                            <span class="estado badge-alerta align-self-center">@a.DiferenciaPorcentaje?.ToString("+0.0;-0.0")% (@a.DiferenciaKg?.ToString("+#,0;-#,0") kg)</span>
+                        </li>
+                    }
+                </ul>
+                @if (User.IsInRole(Roles.Admin))
+                {
+                    <a asp-controller="Reportes" asp-action="Index" asp-route-SoloConAlerta="true" class="d-inline-block mt-2">Ver todas en reportes →</a>
+                }
+            }
         </div>
     </div>
 </div>

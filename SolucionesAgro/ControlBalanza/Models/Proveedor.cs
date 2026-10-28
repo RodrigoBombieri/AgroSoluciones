@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using ControlBalanza.Validacion;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ControlBalanza.Models
@@ -16,6 +17,7 @@ namespace ControlBalanza.Models
 
         [Required(ErrorMessage = "El CUIT es obligatorio")]
         [StringLength(20)]
+        [Cuit]
         public string CUIT { get; set; } = string.Empty;
 
         [StringLength(100)]

@@ -1,0 +1,53 @@
+@let c = camion();
+<article class="camion" [class.descargando]="c.estado === 'EnDescarga'" [attr.aria-busy]="ocupado()">
+  <header>
+    <div>
+      <div class="patente">{{ c.patenteCamion }}</div>
+      @if (c.patenteAcoplado) {
+        <div class="acoplado">Acoplado {{ c.patenteAcoplado }}</div>
+      }
+    </div>
+    <span class="demora" [class.alta]="c.minutosEnPlanta >= 120" title="Tiempo desde la entrada">
+      {{ demora(c.minutosEnPlanta) }}
+    </span>
+  </header>
+
+  <dl>
+    <dt>Producto</dt>
+    <dd>{{ c.producto ?? '—' }}</dd>
+    <dt>Proveedor</dt>
+    <dd>{{ c.proveedor ?? '—' }}</dd>
+    <dt>CPE</dt>
+    <dd class="mono">{{ c.numeroCPE }}</dd>
+    <dt>Bruto</dt>
+    <dd class="mono">{{ c.pesoBruto | number: '1.0-0' }} kg</dd>
+    @if (c.nombreChofer) {
+      <dt>Chofer</dt>
+      <dd>{{ c.nombreChofer }}</dd>
+    }
+    @if (c.estado === 'EnDescarga') {
+      <dt>Silo</dt>
+      <dd>{{ c.siloDestino ?? '—' }}</dd>
+      <dt>Operario</dt>
+      <dd>{{ c.usuarioPlayon ?? '—' }}</dd>
+    }
+  </dl>
+
+  @if (c.estado === 'EnEspera') {
+    <div class="accion">
+      <label [for]="'silo-' + c.id">Silo / destino</label>
+      <input [id]="'silo-' + c.id" #silo maxlength="50" placeholder="Ej: Silo 3" [disabled]="ocupado()" />
+      <button type="button" class="btn-accion" (click)="onIniciar(silo.value)" [disabled]="ocupado()">
+        Iniciar descarga
+      </button>
+    </div>
+  } @else {
+    <div class="accion">
+      <label [for]="'obs-' + c.id">Observaciones (opcional)</label>
+      <input [id]="'obs-' + c.id" #obs maxlength="200" placeholder="Humedad, calidad, etc." [disabled]="ocupado()" />
+      <button type="button" class="btn-accion ok" (click)="onFinalizar(obs.value)" [disabled]="ocupado()">
+        Descarga finalizada
+      </button>
+    </div>
+  }
+</article>

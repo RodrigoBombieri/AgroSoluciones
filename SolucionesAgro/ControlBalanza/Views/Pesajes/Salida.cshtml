@@ -1,0 +1,48 @@
+@model IEnumerable<Pesaje>
+@{
+    ViewData["Title"] = "Balanza de salida";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Balanza de salida</h1>
+        <p class="subtitle">Camiones que terminaron de descargar. Seleccione uno para registrar la tara.</p>
+    </div>
+    <a asp-action="Salida" class="btn btn-outline-primary"><span class="material-symbols-outlined">refresh</span> Actualizar</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card-panel text-center text-muted">
+        <span class="material-symbols-outlined" style="font-size:48px">local_shipping</span>
+        <p class="mt-2 mb-0">No hay camiones listos para salir.</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var p in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card-panel compact h-100 mb-0">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="dato-grande">@p.PatenteCamion</div>
+                            <div class="text-muted small">CPE <span class="mono">@p.NumeroCPE</span></div>
+                        </div>
+                        <span class="estado estado-@p.Estado">@VistaHelpers.Estado(p.Estado)</span>
+                    </div>
+                    <dl class="row dl-compacta mt-3 mb-2">
+                        <dt class="col-5">Proveedor</dt><dd class="col-7">@p.Proveedor?.RazonSocial</dd>
+                        <dt class="col-5">Producto</dt><dd class="col-7">@p.Producto?.Nombre</dd>
+                        <dt class="col-5">Peso bruto</dt><dd class="col-7 mono">@VistaHelpers.Kg(p.PesoBruto)</dd>
+                        <dt class="col-5">Entrada</dt><dd class="col-7">@p.FechaEntrada.ToString("dd/MM HH:mm")</dd>
+                    </dl>
+                    <a asp-action="RegistrarSalida" asp-route-id="@p.Id" class="btn btn-success w-100">
+                        <span class="material-symbols-outlined">scale</span> Registrar tara
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}

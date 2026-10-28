@@ -1,0 +1,11 @@
+@model List<string>
+@* Checkboxes de roles; el nombre del campo es RolesSeleccionados *@
+<div class="d-flex flex-wrap gap-3">
+    @foreach (var rol in Roles.Todos)
+    {
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="RolesSeleccionados" value="@rol" id="rol-@rol" @(Model.Contains(rol) ? "checked" : "") />
+            <label class="form-check-label" for="rol-@rol">@Roles.Descripcion(rol)</label>
+        </div>
+    }
+</div>

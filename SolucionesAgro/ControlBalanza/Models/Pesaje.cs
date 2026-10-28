@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ControlBalanza.Validacion;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ControlBalanza.Models
@@ -25,10 +26,12 @@ namespace ControlBalanza.Models
 
         [Required(ErrorMessage = "La patente del camión es obligatoria")]
         [StringLength(20)]
+        [Patente]
         [Display(Name = "Patente Camión")]
         public string PatenteCamion { get; set; } = string.Empty;
 
         [StringLength(20)]
+        [Patente]
         [Display(Name = "Patente Acoplado")]
         public string? PatenteAcoplado { get; set; }
 
@@ -36,15 +39,16 @@ namespace ControlBalanza.Models
         [Display(Name = "Nombre Chofer")]
         public string? NombreChofer { get; set; }
 
-        [Range(0, double.MaxValue)]
+        [Required(ErrorMessage = "Ingrese los kilos declarados")]
+        [Range(0, 100000, ErrorMessage = "Los kilos declarados deben estar entre 0 y 100.000")]
         [Display(Name = "Kilos Declarados")]
         public double KilosDeclarados { get; set; } // Obtenidos de la CPE
 
-        [Range(0, double.MaxValue)]
+        [Range(0, 100000, ErrorMessage = "El peso bruto debe estar entre 0 y 100.000 kg")]
         [Display(Name = "Peso Bruto")]
         public double? PesoBruto { get; set; } // Se registra en la entrada
 
-        [Range(0, double.MaxValue)]
+        [Range(0, 100000, ErrorMessage = "La tara debe estar entre 0 y 100.000 kg")]
         [Display(Name = "Peso Tara")]
         public double? PesoTara { get; set; } // Se registra en la salida
 
@@ -63,6 +67,27 @@ namespace ControlBalanza.Models
         [DataType(DataType.DateTime)]
         [Display(Name = "Fecha Salida")]
         public DateTime? FechaSalida { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "Silo / Destino")]
+        public string? SiloDestino { get; set; } // Lo asigna el playón al iniciar la descarga
+
+        [StringLength(500)]
+        [Display(Name = "Observaciones")]
+        public string? Observaciones { get; set; }
+
+        // --- Calculados (no se guardan) ---
+
+        /// <summary>Peso neto real menos kilos declarados en la CPE (null si todavía no hay neto).</summary>
+        [NotMapped]
+        [Display(Name = "Diferencia (kg)")]
+        public double? DiferenciaKg => PesoNeto.HasValue ? PesoNeto.Value - KilosDeclarados : null;
+
+        /// <summary>Diferencia en % respecto de lo declarado.</summary>
+        [NotMapped]
+        [Display(Name = "Diferencia (%)")]
+        public double? DiferenciaPorcentaje =>
+            DiferenciaKg.HasValue && KilosDeclarados > 0 ? DiferenciaKg.Value / KilosDeclarados * 100 : null;
 
         // --- Usuarios que intervienen en cada etapa (FK a AspNetUsers, Id string) ---
         // Se asignan en el servidor a partir del usuario logueado, nunca desde el formulario.

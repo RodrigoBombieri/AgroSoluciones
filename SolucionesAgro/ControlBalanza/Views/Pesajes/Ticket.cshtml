@@ -1,0 +1,70 @@
+@model SalidaRegistradaViewModel
+@{
+    ViewData["Title"] = "Ticket de pesaje";
+    var p = Model.Pesaje;
+}
+
+<div class="page-header no-print">
+    <h1>Ticket de pesaje</h1>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <span class="material-symbols-outlined">print</span> Imprimir
+        </button>
+        @if (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.BalanzaSalida))
+        {
+            <a asp-action="Salida" class="btn btn-outline-primary">Siguiente camión</a>
+        }
+    </div>
+</div>
+
+@if (Model.FueraDeTolerancia)
+{
+    <div class="alert alert-warning no-print">
+        <strong>Atención:</strong> la diferencia entre el neto y lo declarado en la CPE
+        (@p.DiferenciaPorcentaje?.ToString("+0.00;-0.00")%) supera la tolerancia de ±@Model.Tolerancia.ToString("0.##")%.
+    </div>
+}
+
+<div class="card-panel ticket">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <div class="h4 mb-0">AgroLogix</div>
+            <small class="text-muted">Comprobante de pesaje</small>
+        </div>
+        <span class="estado estado-@p.Estado">@VistaHelpers.Estado(p.Estado)</span>
+    </div>
+
+    <dl class="row dl-compacta">
+        <dt class="col-5">Nº CPE</dt><dd class="col-7 mono">@p.NumeroCPE</dd>
+        <dt class="col-5">Proveedor</dt><dd class="col-7">@p.Proveedor?.RazonSocial <span class="mono">(@p.Proveedor?.CUIT)</span></dd>
+        <dt class="col-5">Producto</dt><dd class="col-7">@p.Producto?.Nombre @p.Producto?.Variedad</dd>
+        <dt class="col-5">Camión / Acoplado</dt><dd class="col-7 mono">@p.PatenteCamion @(p.PatenteAcoplado != null ? "/ " + p.PatenteAcoplado : "")</dd>
+        <dt class="col-5">Chofer</dt><dd class="col-7">@(p.NombreChofer ?? "—")</dd>
+        <dt class="col-5">Entrada</dt><dd class="col-7">@VistaHelpers.Fecha(p.FechaEntrada)</dd>
+        <dt class="col-5">Salida</dt><dd class="col-7">@VistaHelpers.Fecha(p.FechaSalida)</dd>
+        <dt class="col-5">Silo</dt><dd class="col-7">@(p.SiloDestino ?? "—")</dd>
+    </dl>
+
+    <table class="table mb-0">
+        <tbody class="mono">
+            <tr><td>Peso bruto</td><td class="text-end">@VistaHelpers.Kg(p.PesoBruto)</td></tr>
+            <tr><td>Peso tara</td><td class="text-end">@VistaHelpers.Kg(p.PesoTara)</td></tr>
+            <tr class="fw-bold fs-5"><td>Peso neto</td><td class="text-end">@VistaHelpers.Kg(p.PesoNeto)</td></tr>
+            <tr><td>Declarado CPE</td><td class="text-end">@VistaHelpers.Kg(p.KilosDeclarados)</td></tr>
+            <tr class="@(Model.FueraDeTolerancia ? "text-danger" : "")">
+                <td>Diferencia</td>
+                <td class="text-end">@(p.DiferenciaKg?.ToString("+#,0;-#,0;0") ?? "—") kg (@(p.DiferenciaPorcentaje?.ToString("+0.00;-0.00;0") ?? "—")%)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="row small text-muted mt-3">
+        <div class="col-4">Entrada: @p.UsuarioBalanzaEntrada?.NombreCompleto</div>
+        <div class="col-4">Playón: @p.UsuarioPlayon?.NombreCompleto</div>
+        <div class="col-4">Salida: @p.UsuarioBalanzaSalida?.NombreCompleto</div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(p.Observaciones))
+    {
+        <p class="small mt-2 mb-0"><strong>Observaciones:</strong> @p.Observaciones</p>
+    }
+</div>

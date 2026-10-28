@@ -1,0 +1,40 @@
+@model IEnumerable<UsuarioListadoItem>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Usuarios</h1>
+        <p class="subtitle">Cada operario ve solo las pantallas de su rol. Los usuarios no se borran: se desactivan.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><span class="material-symbols-outlined">person_add</span> Nuevo usuario</a>
+</div>
+
+<div class="card-panel compact">
+    <div class="table-responsive">
+        <table class="table table-data">
+            <thead>
+                <tr><th>Nombre</th><th>Email</th><th>Roles</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr class="@(u.Activo ? "" : "text-muted")">
+                        <td>@u.NombreCompleto</td>
+                        <td>@u.Email</td>
+                        <td>
+                            @if (!u.Roles.Any()) { <span class="text-danger small">Sin rol</span> }
+                            @foreach (var r in u.Roles)
+                            {
+                                <span class="estado estado-EnDescarga me-1">@Roles.Descripcion(r)</span>
+                            }
+                        </td>
+                        <td>@(u.Activo ? "Activo" : "Desactivado")</td>
+                        <td class="acciones"><a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-primary">Editar</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,51 +1,69 @@
-@model ControlBalanza.Models.Pesaje
+@model Pesaje
 
-<dl class="row">
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NumeroCPE)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.NumeroCPE</dd>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <dl class="row dl-compacta mb-0">
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.NumeroCPE)</dt>
+            <dd class="col-sm-7 mono">@Model.NumeroCPE</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Estado)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(m => m.Estado)</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.Estado)</dt>
+            <dd class="col-sm-7"><span class="estado estado-@Model.Estado">@VistaHelpers.Estado(Model.Estado)</span></dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ProveedorId)</dt>
-    <dd class="col-sm-9">@Model.Proveedor?.RazonSocial (@Model.Proveedor?.CUIT)</dd>
+            <dt class="col-sm-5">Proveedor</dt>
+            <dd class="col-sm-7">@Model.Proveedor?.RazonSocial <span class="mono">(@Model.Proveedor?.CUIT)</span></dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ProductoId)</dt>
-    <dd class="col-sm-9">@Model.Producto?.Nombre @Model.Producto?.Variedad</dd>
+            <dt class="col-sm-5">Producto</dt>
+            <dd class="col-sm-7">@Model.Producto?.Nombre @Model.Producto?.Variedad</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PatenteCamion)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.PatenteCamion</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.PatenteCamion)</dt>
+            <dd class="col-sm-7 mono">@Model.PatenteCamion</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PatenteAcoplado)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.PatenteAcoplado</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.PatenteAcoplado)</dt>
+            <dd class="col-sm-7 mono">@(Model.PatenteAcoplado ?? "—")</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.NombreChofer)</dt>
-    <dd class="col-sm-9">@Model.NombreChofer</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.NombreChofer)</dt>
+            <dd class="col-sm-7">@(Model.NombreChofer ?? "—")</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.KilosDeclarados)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.KilosDeclarados.ToString("N0") kg</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.SiloDestino)</dt>
+            <dd class="col-sm-7">@(Model.SiloDestino ?? "—")</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoBruto)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.PesoBruto?.ToString("N0") kg</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.Observaciones)</dt>
+            <dd class="col-sm-7">@(Model.Observaciones ?? "—")</dd>
+        </dl>
+    </div>
+    <div class="col-lg-6">
+        <dl class="row dl-compacta mb-0">
+            <dt class="col-sm-5">Kilos declarados</dt>
+            <dd class="col-sm-7 mono">@VistaHelpers.Kg(Model.KilosDeclarados)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoTara)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.PesoTara?.ToString("N0") kg</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.PesoBruto)</dt>
+            <dd class="col-sm-7 mono">@VistaHelpers.Kg(Model.PesoBruto)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.PesoNeto)</dt>
-    <dd class="col-sm-9 font-monospace">@Model.PesoNeto?.ToString("N0") kg</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.PesoTara)</dt>
+            <dd class="col-sm-7 mono">@VistaHelpers.Kg(Model.PesoTara)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaEntrada)</dt>
-    <dd class="col-sm-9">@Model.FechaEntrada.ToString("dd/MM/yyyy HH:mm")</dd>
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.PesoNeto)</dt>
+            <dd class="col-sm-7 mono fw-bold">@VistaHelpers.Kg(Model.PesoNeto)</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.FechaSalida)</dt>
-    <dd class="col-sm-9">@Model.FechaSalida?.ToString("dd/MM/yyyy HH:mm")</dd>
+            <dt class="col-sm-5">Diferencia</dt>
+            <dd class="col-sm-7 mono">
+                @if (Model.DiferenciaKg.HasValue)
+                {
+                    <span class="@(ViewBag.FueraDeTolerancia == true ? "estado badge-alerta" : "")">
+                        @Model.DiferenciaKg.Value.ToString("+#,0;-#,0;0") kg (@Model.DiferenciaPorcentaje?.ToString("+0.00;-0.00;0")%)
+                    </span>
+                }
+                else { <text>—</text> }
+            </dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioBalanzaEntradaId)</dt>
-    <dd class="col-sm-9">@Model.UsuarioBalanzaEntrada?.NombreCompleto</dd>
+            <dt class="col-sm-5">Entrada</dt>
+            <dd class="col-sm-7">@VistaHelpers.Fecha(Model.FechaEntrada) · @Model.UsuarioBalanzaEntrada?.NombreCompleto</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioPlayonId)</dt>
-    <dd class="col-sm-9">@Model.UsuarioPlayon?.NombreCompleto</dd>
+            <dt class="col-sm-5">Playón</dt>
+            <dd class="col-sm-7">@(Model.UsuarioPlayon?.NombreCompleto ?? "—")</dd>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(m => m.UsuarioBalanzaSalidaId)</dt>
-    <dd class="col-sm-9">@Model.UsuarioBalanzaSalida?.NombreCompleto</dd>
-</dl>
+            <dt class="col-sm-5">Salida</dt>
+            <dd class="col-sm-7">@VistaHelpers.Fecha(Model.FechaSalida) @(Model.UsuarioBalanzaSalida != null ? "· " + Model.UsuarioBalanzaSalida.NombreCompleto : "")</dd>
+        </dl>
+    </div>
+</div>
