@@ -21,5 +21,13 @@ namespace ControlBalanza.Helpers
             var m = (int)Math.Round(minutos.Value);
             return m >= 60 ? $"{m / 60} h {m % 60} min" : $"{m} min";
         }
+
+        /// <summary>"1h 35m": versión compacta para tarjetas.</summary>
+        public static string DuracionCorta(double? minutos)
+        {
+            if (!minutos.HasValue) return "—";
+            var m = (int)Math.Round(minutos.Value);
+            return m >= 60 ? $"{m / 60}h {m % 60:00}m" : $"{m}m";
+        }
     }
 }

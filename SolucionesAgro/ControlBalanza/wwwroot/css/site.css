@@ -234,7 +234,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4 { color: var(--primary); font-weight: 600; le
 .card-panel.compact { padding: 16px; }
 
 /* KPIs */
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .kpi {
   background: var(--surface-white);
   border: 1px solid var(--border);
@@ -257,7 +257,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4 { color: var(--primary); font-weight: 600; le
 }
 .kpi-icon.ok { background: rgba(27, 109, 36, 0.1); color: var(--secondary); }
 .kpi-icon.warn { background: rgba(228, 146, 0, 0.14); color: #8a5800; }
-.kpi-value { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 600; color: var(--on-surface); line-height: 1.1; }
+.kpi-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; color: var(--on-surface); line-height: 1.1; white-space: nowrap; }
 .kpi-label { font-size: 12px; font-weight: 500; color: var(--on-surface-variant); }
 
 /* ---------- Tablas ---------- */
@@ -275,6 +275,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4 { color: var(--primary); font-weight: 600; le
 }
 .table-data tbody tr:nth-child(even) { background: #f8fafc; }
 .table-data td { vertical-align: middle; }
+.table-data td.mono { white-space: nowrap; }
 .table-data .acciones { white-space: nowrap; text-align: right; }
 .table-data .acciones a { margin-left: 4px; }
 
@@ -308,6 +309,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4 { color: var(--primary); font-weight: 600; le
 .dato-grande { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 600; }
 .dl-compacta dt { font-weight: 500; color: var(--on-surface-variant); font-size: 13px; }
 .dl-compacta dd { margin-bottom: 10px; }
+.dl-compacta .mono { white-space: nowrap; }
 
 /* Ticket imprimible */
 .ticket { max-width: 640px; }

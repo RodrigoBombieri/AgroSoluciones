@@ -5,7 +5,7 @@
       <p class="subtitulo">
         {{ camiones().length }} camión(es) en el playón
         @if (ultimaActualizacion(); as fecha) {
-          · actualizado {{ fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}
+          · actualizado {{ fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) }}
         }
       </p>
     </div>

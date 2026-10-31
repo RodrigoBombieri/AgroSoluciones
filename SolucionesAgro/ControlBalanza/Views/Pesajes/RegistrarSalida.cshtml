@@ -73,6 +73,7 @@
             const neto = document.getElementById('neto-estimado');
             const dif = document.getElementById('diferencia');
             const fmt = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 });
+            const fmtPct = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: 'always' });
 
             function calcular() {
                 const t = parseFloat((tara.value || '').replace(',', '.'));
@@ -82,7 +83,7 @@
                 neto.classList.toggle('text-danger', n <= 0);
                 if (declarado > 0) {
                     const d = n - declarado;
-                    dif.textContent = (d >= 0 ? '+' : '') + fmt.format(d) + ' kg (' + (d / declarado * 100).toFixed(2) + '%)';
+                    dif.textContent = (d >= 0 ? '+' : '') + fmt.format(d) + ' kg (' + fmtPct.format(d / declarado * 100) + '%)';
                 }
             }
             tara.addEventListener('input', calcular);
