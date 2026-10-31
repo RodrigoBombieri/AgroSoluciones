@@ -30,6 +30,10 @@ namespace ControlBalanza.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Ctg")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
                     b.Property<int>("Estado")
                         .HasColumnType("int");
 
@@ -96,6 +100,10 @@ namespace ControlBalanza.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Ctg")
+                        .IsUnique()
+                        .HasFilter("[Ctg] IS NOT NULL");
 
                     b.HasIndex("Estado");
 

@@ -21,23 +21,19 @@ namespace ControlBalanza.Controllers
     [Authorize]
     public class PesajesController : Controller
     {
-        private const long TamanioMaximoImagen = 10 * 1024 * 1024; // 10 MB
-
         private readonly AgroDbContext _context;
         private readonly UserManager<Usuario> _userManager;
         private readonly IPesajeWorkflowService _workflow;
         private readonly CpeIngresoService _cpeIngreso;
-        private readonly ICpeExtractorIA _extractorIA;
         private readonly BalanzaOptions _opciones;
 
         public PesajesController(AgroDbContext context, UserManager<Usuario> userManager, IPesajeWorkflowService workflow,
-            CpeIngresoService cpeIngreso, ICpeExtractorIA extractorIA, IOptions<BalanzaOptions> opciones)
+            CpeIngresoService cpeIngreso, IOptions<BalanzaOptions> opciones)
         {
             _context = context;
             _userManager = userManager;
             _workflow = workflow;
             _cpeIngreso = cpeIngreso;
-            _extractorIA = extractorIA;
             _opciones = opciones.Value;
         }
 
@@ -75,7 +71,6 @@ namespace ControlBalanza.Controllers
         public async Task<IActionResult> Create()
         {
             await CargarListas();
-            ViewBag.IADisponible = _extractorIA.Disponible;
             return View(new Pesaje());
         }
 
@@ -85,7 +80,7 @@ namespace ControlBalanza.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = Roles.AdminOEntrada)]
         public async Task<IActionResult> Create(
-            [Bind("NumeroCPE,PatenteCamion,PatenteAcoplado,NombreChofer,KilosDeclarados,PesoBruto,ProveedorId,ProductoId")] Pesaje pesaje)
+            [Bind("NumeroCPE,Ctg,PatenteCamion,PatenteAcoplado,NombreChofer,KilosDeclarados,PesoBruto,ProveedorId,ProductoId")] Pesaje pesaje)
         {
             var usuarioId = _userManager.GetUserId(User);
             if (usuarioId == null) return Challenge();
@@ -104,7 +99,6 @@ namespace ControlBalanza.Controllers
             }
 
             await CargarListas(pesaje.ProveedorId, pesaje.ProductoId);
-            ViewBag.IADisponible = _extractorIA.Disponible;
             return View(pesaje);
         }
 
@@ -118,25 +112,16 @@ namespace ControlBalanza.Controllers
             return Json(await _cpeIngreso.CompletarAsync(datos));
         }
 
-        // POST: Pesajes/LeerCpeConIA — foto de la CPE → datos extraídos por IA
+        // POST: Pesajes/InterpretarTextoCpe — texto de la CPE (extraído del PDF o por OCR en el navegador)
+        // más el contenido del QR si se pudo leer. Devuelve los campos para precompletar.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = Roles.AdminOEntrada)]
-        [RequestSizeLimit(TamanioMaximoImagen + 64 * 1024)]
-        public async Task<IActionResult> LeerCpeConIA(IFormFile? imagen, CancellationToken ct)
+        [RequestSizeLimit(200_000)]
+        public async Task<IActionResult> InterpretarTextoCpe([FromForm] string? texto, [FromForm] string? qr, [FromForm] string? origen)
         {
-            if (imagen == null || imagen.Length == 0)
-                return BadRequest(new { error = "No se recibió ninguna imagen." });
-            if (imagen.Length > TamanioMaximoImagen)
-                return BadRequest(new { error = "La imagen supera los 10 MB." });
-            if (imagen.ContentType is not ("image/jpeg" or "image/png" or "image/webp"))
-                return BadRequest(new { error = "Formato no soportado. Use JPG, PNG o WEBP." });
-            if (!_extractorIA.Disponible)
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { error = "La lectura con IA no está configurada." });
-
-            await using var stream = imagen.OpenReadStream();
-            var datos = await _extractorIA.ExtraerAsync(stream, imagen.ContentType, ct);
-            return Json(await _cpeIngreso.CompletarAsync(datos));
+            var datos = CpeTextoParser.Interpretar(texto, origen == "PDF" ? "PDF" : "OCR");
+            return Json(await _cpeIngreso.CompletarAsync(datos, qr));
         }
 
         // ===================== BALANZA DE SALIDA =====================
@@ -239,7 +224,7 @@ namespace ControlBalanza.Controllers
             if (pesaje == null) return NotFound();
 
             var actualizado = await TryUpdateModelAsync(pesaje, "",
-                p => p.NumeroCPE, p => p.PatenteCamion, p => p.PatenteAcoplado, p => p.NombreChofer,
+                p => p.NumeroCPE, p => p.Ctg, p => p.PatenteCamion, p => p.PatenteAcoplado, p => p.NombreChofer,
                 p => p.KilosDeclarados, p => p.PesoBruto, p => p.PesoTara, p => p.Estado,
                 p => p.ProveedorId, p => p.ProductoId, p => p.SiloDestino, p => p.Observaciones);
 

@@ -72,11 +72,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // --- Servicios de negocio ---
 builder.Services.Configure<BalanzaOptions>(builder.Configuration.GetSection(BalanzaOptions.Seccion));
-builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection(AzureOpenAIOptions.Seccion));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPesajeWorkflowService, PesajeWorkflowService>();
 builder.Services.AddScoped<CpeIngresoService>();
-builder.Services.AddScoped<ICpeExtractorIA, CpeExtractorIA>();
 builder.Services.AddScoped<ReportesService>();
 
 var app = builder.Build();

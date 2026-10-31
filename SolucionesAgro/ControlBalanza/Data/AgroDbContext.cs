@@ -26,6 +26,7 @@ namespace ControlBalanza.Data
             {
                 // Una CPE se ingresa una sola vez
                 entity.HasIndex(p => p.NumeroCPE).IsUnique();
+                entity.HasIndex(p => p.Ctg).IsUnique().HasFilter("[Ctg] IS NOT NULL");
 
                 // Búsquedas frecuentes del playón y los reportes
                 entity.HasIndex(p => p.Estado);

@@ -2,19 +2,19 @@
 
 Este proyecto es una solución de software híbrida diseñada específicamente para optimizar la logística, el pesaje y la descarga de camiones en acopios de grano, molinos y plantas industriales. 
 
-El sistema resuelve problemas críticos de conectividad en zonas rurales mediante un flujo de captura doble (Lector QR para Cartas de Porte Electrónicas y un módulo de IA con OCR inteligente como alternativa de contingencia cuando el QR no se puede leer).
+El sistema resuelve problemas críticos de conectividad en zonas rurales: la Carta de Porte Electrónica se lee por QR, desde su PDF o con OCR de una foto, todo en el propio equipo, sin internet y sin servicios pagos.
 
 ---
 
 ## 🚀 Características Principales
 
-* **Ingreso Híbrido de CPE:** Escaneo del código QR con la cámara o desde una imagen, o foto de la CPE con extracción automática de datos mediante **IA (Azure OpenAI con visión)**. Los datos leídos precompletan el formulario y el operario confirma.
+* **Lectura de la CPE sin costo:** QR con la cámara (da el CTG), PDF de la CPE (se lee el texto directo) o foto del papel (OCR local con Tesseract.js). Los datos precompletan el formulario y se validan: CUIT con dígito verificador, formato de patente, CTG del QR vs. el impreso, CPE vencida, destino a otra planta y CPE ya ingresada. El operario confirma.
 * **Gestión de Estados por Roles:** Balanza Entrada ➡️ Playón/Descarga ➡️ Balanza Salida. Cada operario ve solo las pantallas de su rol.
 * **Panel del Playón en Angular:** Pensado para celular/tablet. Muestra los camiones en espera y descargando, se actualiza solo cada 15 segundos y permite asignar silo y registrar observaciones.
 * **Dashboard:** Camiones en planta por estado, ingresos y neto del día, demora promedio y alertas de diferencia contra lo declarado en la CPE.
 * **Panel de Administración:** Historial de pesajes con filtros por fechas, productor, grano, patente, CPE y estado; exportación a CSV (Excel); ABM de proveedores, productos y usuarios.
 * **Validaciones de negocio:** CUIT con dígito verificador, patentes AAA999 / AA999AA, CPE única, un camión no puede estar dos veces en planta, tara menor que bruto y tolerancia de diferencia configurable.
-* **Funciona sin internet:** fuentes, íconos y librerías se sirven desde el propio sitio (solo la lectura por IA necesita conexión).
+* **Funciona sin internet:** fuentes, íconos, OCR y librerías se sirven desde el propio sitio.
 
 ---
 
@@ -23,8 +23,7 @@ El sistema resuelve problemas críticos de conectividad en zonas rurales mediant
 * **Backend:** .NET 10.0 / C# (ASP.NET Core MVC + Identity con roles)
 * **Frontend:** Razor Views + Angular 21 (panel del playón, montado dentro de una vista Razor)
 * **Persistencia:** SQL Server mediante Entity Framework Core (Code First, migraciones)
-* **Inteligencia Artificial:** Azure OpenAI (modelo con visión, respuesta en JSON estructurado)
-* **QR:** html5-qrcode (en el navegador)
+* **Lectura de CPE (en el navegador):** html5-qrcode (QR), pdf.js (texto del PDF), Tesseract.js con idioma español (OCR)
 
 ---
 
@@ -58,20 +57,17 @@ En entorno **Development** se crean además usuarios de prueba (contraseña `Agr
 
 > La cámara para leer el QR solo funciona con **HTTPS** (o `localhost`). Usar el perfil `https` de `launchSettings.json`.
 
-### Configurar la lectura con IA (opcional)
+### Lectura de la Carta de Porte
 
-Se necesita un recurso de Azure OpenAI con un deployment de un modelo con visión (por ejemplo `gpt-4o-mini`). Para no subir la clave a Git, usar *user-secrets*.
+Probado con CPE reales de ARCA:
 
-**Dónde:** terminal (PowerShell) en la carpeta `SolucionesAgro\ControlBalanza`:
+| Fuente | Qué se obtiene | Tiempo aprox. |
+|---|---|---|
+| **QR** (cámara) | Solo el **CTG** (11 dígitos): ARCA no pone otros datos en el QR. | instantáneo |
+| **PDF original de ARCA** | Todos los datos, leyendo el texto del PDF (exacto, sin OCR). | < 1 s |
+| **PDF escaneado o foto** | Todos los datos por OCR. Revisar especialmente CUIT y patente (el OCR puede confundir 3/5/8 y O/0; el CUIT se valida con el dígito verificador). | 5-6 s |
 
-```powershell
-dotnet user-secrets init
-dotnet user-secrets set "AzureOpenAI:Endpoint" "https://TU-RECURSO.openai.azure.com/"
-dotnet user-secrets set "AzureOpenAI:ApiKey" "TU-CLAVE"
-dotnet user-secrets set "AzureOpenAI:Deployment" "gpt-4o-mini"
-```
-
-Sin esta configuración el botón "Leer con IA" aparece deshabilitado y el resto funciona igual.
+La interpretación del texto está en `Services/Cpe/CpeTextoParser.cs` y los controles contra la base en `Services/Cpe/CpeIngresoService.cs`.
 
 ### Parámetros de balanza
 
@@ -79,6 +75,7 @@ En `appsettings.json`, sección `Balanza`:
 
 * `ToleranciaDiferenciaPorcentaje` (por defecto `0.5`): diferencia máxima entre el neto y lo declarado en la CPE antes de marcar alerta.
 * `PesoMaximoKg` (por defecto `75000`): tope del peso bruto para detectar errores de tipeo.
+* `NumeroPlantaRuca` (por defecto `null`): N° de planta (RUCA) de esta planta en ARCA. Si se carga, al leer una CPE se avisa cuando su destino es otra planta.
 
 ### Recompilar el panel Angular
 
@@ -100,8 +97,8 @@ npm test         # tests del panel (Vitest)
 ControlBalanza/
 ├─ Controllers/          MVC (Pesajes, Reportes, Usuarios, Proveedores, Productos, Home)
 │  └─ Api/PlayonController.cs   API JSON del panel del playón (cookie + antiforgery)
-├─ Services/             Flujo de estados, reportes, lectura de CPE (QR / IA)
-├─ Validacion/           CUIT y patentes
+├─ Services/             Flujo de estados, reportes, lectura de CPE (QR / PDF / OCR)
+├─ Validacion/           CUIT, patentes y CTG
 ├─ Seguridad/Roles.cs    Nombres de los roles
 ├─ Areas/Identity/       Login en español (reemplaza al de Identity UI)
 ├─ Migrations/           Migraciones de EF Core
@@ -111,7 +108,6 @@ ControlBalanza/
 
 ---
 
-## 📝 Pendientes conocidos
+## 📝 Próximos pasos
 
-* **Formato del QR de la CPE:** AFIP no documenta un formato único del QR. El parser (`Services/Cpe/CpeQrParser.cs`) acepta JSON, URL con parámetros (incluido Base64) y texto libre. Hay que probarlo con una CPE real y, si hace falta, agregar las claves exactas en `ClavesConocidas`.
-* La lectura con IA necesita conexión a internet; ante un corte, queda el QR o la carga manual.
+* **Integración con el web service de ARCA (WSCPE):** con el CTG se pueden consultar los datos oficiales de la CPE (`consultarCPEAutomotor`) y confirmar el arribo y la descarga con los pesos reales (`confirmarArriboCPE`, `confirmacionDefinitivaCPEAutomotor`). Requiere certificado digital del CUIT de la planta y dar de alta el servicio `wscpe` en ARCA.

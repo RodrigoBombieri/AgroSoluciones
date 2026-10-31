@@ -109,12 +109,13 @@ namespace ControlBalanza.Services
 
             var cultura = CultureInfo.GetCultureInfo("es-AR");
             var sb = new StringBuilder();
-            sb.AppendLine("Nro CPE;Fecha entrada;Fecha salida;Estado;Proveedor;CUIT;Producto;Patente camion;Patente acoplado;Chofer;Kg declarados;Peso bruto;Peso tara;Peso neto;Diferencia kg;Diferencia %;Silo;Usuario entrada;Usuario playon;Usuario salida;Observaciones");
+            sb.AppendLine("Nro CPE;CTG;Fecha entrada;Fecha salida;Estado;Proveedor;CUIT;Producto;Patente camion;Patente acoplado;Chofer;Kg declarados;Peso bruto;Peso tara;Peso neto;Diferencia kg;Diferencia %;Silo;Usuario entrada;Usuario playon;Usuario salida;Observaciones");
             foreach (var p in datos)
             {
                 sb.AppendJoin(';', new[]
                 {
                     Csv(p.NumeroCPE),
+                    Csv(p.Ctg),
                     p.FechaEntrada.ToString("dd/MM/yyyy HH:mm", cultura),
                     p.FechaSalida?.ToString("dd/MM/yyyy HH:mm", cultura) ?? "",
                     p.Estado.ToString(),
@@ -160,7 +161,11 @@ namespace ControlBalanza.Services
             if (f.ProveedorId.HasValue) q = q.Where(p => p.ProveedorId == f.ProveedorId);
             if (f.ProductoId.HasValue) q = q.Where(p => p.ProductoId == f.ProductoId);
             if (f.Estado.HasValue) q = q.Where(p => p.Estado == f.Estado);
-            if (!string.IsNullOrWhiteSpace(f.NumeroCPE)) q = q.Where(p => p.NumeroCPE.Contains(f.NumeroCPE.Trim()));
+            if (!string.IsNullOrWhiteSpace(f.NumeroCPE))
+            {
+                var buscado = f.NumeroCPE.Trim();
+                q = q.Where(p => p.NumeroCPE.Contains(buscado) || (p.Ctg != null && p.Ctg.Contains(buscado)));
+            }
             if (!string.IsNullOrWhiteSpace(f.Patente))
             {
                 var patente = Patente.Normalizar(f.Patente);

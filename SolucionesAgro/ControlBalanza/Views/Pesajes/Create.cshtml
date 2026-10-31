@@ -1,7 +1,6 @@
 @model Pesaje
 @{
     ViewData["Title"] = "Balanza de entrada";
-    var iaDisponible = ViewBag.IADisponible as bool? ?? false;
 }
 
 <div class="page-header">
@@ -18,27 +17,18 @@
 
     <div class="cpe-captura">
         <button type="button" id="btn-escanear" class="btn btn-primary">
-            <span class="material-symbols-outlined">photo_camera</span> Escanear QR con cámara
+            <span class="material-symbols-outlined">qr_code_scanner</span> Escanear QR con cámara
         </button>
-        <label class="btn btn-outline-primary mb-0">
-            <span class="material-symbols-outlined">qr_code</span> QR desde imagen
-            <input type="file" id="archivo-qr" accept="image/*" hidden />
+        <label class="btn btn-outline-primary mb-0" title="PDF de la CPE o foto del papel: se leen el QR y todos los datos impresos">
+            <span class="material-symbols-outlined">document_scanner</span> Leer CPE (PDF o foto)
+            <input type="file" id="archivo-cpe" accept="application/pdf,image/*" hidden />
         </label>
-        @if (iaDisponible)
-        {
-            <label class="btn btn-outline-primary mb-0" title="Saca una foto de la CPE y la IA extrae los datos">
-                <span class="material-symbols-outlined">document_scanner</span> Leer foto con IA
-                <input type="file" id="archivo-ia" accept="image/jpeg,image/png,image/webp" capture="environment" hidden />
-            </label>
-        }
-        else
-        {
-            <button type="button" class="btn btn-outline-secondary" disabled title="Configure la sección AzureOpenAI en appsettings.json">
-                <span class="material-symbols-outlined">document_scanner</span> Leer con IA (no configurada)
-            </button>
-        }
         <button type="button" id="btn-detener" class="btn btn-outline-secondary d-none">Detener cámara</button>
     </div>
+    <p class="small text-muted mt-2 mb-0">
+        El QR de la CPE solo trae el CTG. Para completar todos los datos, cargue el PDF de la CPE o sáquele una foto al papel
+        (se lee en este equipo, sin internet y sin costo).
+    </p>
 
     <div id="lector-qr"></div>
     <div id="cpe-estado" class="mt-3 small text-muted" role="status" aria-live="polite"></div>
@@ -51,17 +41,22 @@
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     <div class="row g-3">
-        <div class="col-md-4">
-            <label asp-for="NumeroCPE" class="form-label"></label>
-            <input asp-for="NumeroCPE" class="form-control mono" autocomplete="off" />
+        <div class="col-md-6">
+            <label asp-for="NumeroCPE" class="form-label">Número CPE</label>
+            <input asp-for="NumeroCPE" class="form-control mono" autocomplete="off" placeholder="00001-00001665" />
             <span asp-validation-for="NumeroCPE" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
+            <label asp-for="Ctg" class="form-label"></label>
+            <input asp-for="Ctg" class="form-control mono" autocomplete="off" inputmode="numeric" placeholder="10100014235" />
+            <span asp-validation-for="Ctg" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
             <label asp-for="PatenteCamion" class="form-label"></label>
             <input asp-for="PatenteCamion" class="form-control mono text-uppercase" autocomplete="off" placeholder="AA123BB" />
             <span asp-validation-for="PatenteCamion" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <label asp-for="PatenteAcoplado" class="form-label"></label>
             <input asp-for="PatenteAcoplado" class="form-control mono text-uppercase" autocomplete="off" />
             <span asp-validation-for="PatenteAcoplado" class="text-danger"></span>
@@ -111,5 +106,6 @@
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script src="~/lib/html5-qrcode/html5-qrcode.min.js"></script>
+    <script src="~/lib/tesseract/tesseract.min.js"></script>
     <script src="~/js/ingreso-cpe.js" asp-append-version="true"></script>
 }

@@ -48,6 +48,7 @@ namespace ControlBalanza.Services
             var errores = new List<string>();
 
             pesaje.NumeroCPE = pesaje.NumeroCPE.Trim();
+            pesaje.Ctg = string.IsNullOrWhiteSpace(pesaje.Ctg) ? null : Ctg.Normalizar(pesaje.Ctg);
             pesaje.PatenteCamion = Patente.Normalizar(pesaje.PatenteCamion);
             pesaje.PatenteAcoplado = string.IsNullOrWhiteSpace(pesaje.PatenteAcoplado) ? null : Patente.Normalizar(pesaje.PatenteAcoplado);
             pesaje.NombreChofer = string.IsNullOrWhiteSpace(pesaje.NombreChofer) ? null : pesaje.NombreChofer.Trim();
@@ -62,6 +63,8 @@ namespace ControlBalanza.Services
 
             if (await _context.Pesajes.AnyAsync(p => p.NumeroCPE == pesaje.NumeroCPE))
                 errores.Add($"La CPE {pesaje.NumeroCPE} ya fue ingresada.");
+            if (pesaje.Ctg != null && await _context.Pesajes.AnyAsync(p => p.Ctg == pesaje.Ctg))
+                errores.Add($"El CTG {pesaje.Ctg} ya fue ingresado.");
 
             // Un camión no puede estar dos veces en planta
             if (await _context.Pesajes.AnyAsync(p => p.PatenteCamion == pesaje.PatenteCamion && p.Estado != EstadoPesaje.Completado))

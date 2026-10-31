@@ -23,7 +23,7 @@ namespace ControlBalanza.ViewModels
         [Display(Name = "Patente")]
         public string? Patente { get; set; }
 
-        [Display(Name = "Nº CPE")]
+        [Display(Name = "Nº CPE o CTG")]
         public string? NumeroCPE { get; set; }
 
         [Display(Name = "Estado")]

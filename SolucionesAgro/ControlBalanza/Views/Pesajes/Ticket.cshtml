@@ -36,6 +36,7 @@
 
     <dl class="row dl-compacta">
         <dt class="col-5">Nº CPE</dt><dd class="col-7 mono">@p.NumeroCPE</dd>
+        <dt class="col-5">CTG</dt><dd class="col-7 mono">@(p.Ctg ?? "—")</dd>
         <dt class="col-5">Proveedor</dt><dd class="col-7">@p.Proveedor?.RazonSocial <span class="mono">(@p.Proveedor?.CUIT)</span></dd>
         <dt class="col-5">Producto</dt><dd class="col-7">@p.Producto?.Nombre @p.Producto?.Variedad</dd>
         <dt class="col-5">Camión / Acoplado</dt><dd class="col-7 mono">@p.PatenteCamion @(p.PatenteAcoplado != null ? "/ " + p.PatenteAcoplado : "")</dd>

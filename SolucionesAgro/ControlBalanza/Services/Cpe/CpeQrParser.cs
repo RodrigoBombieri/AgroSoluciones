@@ -9,10 +9,10 @@ namespace ControlBalanza.Services.Cpe
     /// <summary>
     /// Interpreta el contenido del QR impreso en la CPE.
     ///
-    /// AFIP no publica un formato único y estable para este QR, así que el parser es tolerante:
+    /// Verificado con CPE reales de ARCA: el QR contiene SOLO el CTG (11 dígitos, ej: "10100014235").
+    /// Igual se toleran otros formatos por si cambia:
     ///  1. Si el texto es JSON (o una URL con un parámetro en JSON / Base64-JSON), mapea las claves conocidas.
     ///  2. Si no, busca con expresiones regulares los datos reconocibles (CPE, CTG, patentes, CUIT, kilos).
-    /// Cuando haya una CPE real a mano, conviene agregar el formato exacto en <see cref="ClavesConocidas"/>.
     /// </summary>
     public static partial class CpeQrParser
     {
@@ -53,6 +53,22 @@ namespace ControlBalanza.Services.Cpe
 
             var texto = contenido.Trim();
 
+            // Caso real: el QR trae solo el CTG
+            var soloDigitos = texto.Replace(" ", "");
+            if (soloDigitos.All(char.IsDigit))
+            {
+                if (Ctg.EsValido(soloDigitos))
+                {
+                    datos.Ctg = Ctg.Normalizar(soloDigitos);
+                    datos.Advertencias.Add("El QR de la CPE solo contiene el CTG. Lea la CPE por foto/PDF o complete el resto de los datos desde el papel.");
+                }
+                else
+                {
+                    datos.Advertencias.Add($"El QR ({texto}) no tiene el formato de un CTG.");
+                }
+                return datos;
+            }
+
             if (!IntentarJson(texto, datos))
             {
                 foreach (var candidato in CandidatosDesdeUrl(texto))
@@ -64,7 +80,7 @@ namespace ControlBalanza.Services.Cpe
             BuscarPorPatrones(texto, datos);
 
             if (!datos.TieneDatos)
-                datos.Advertencias.Add("No se reconocieron datos en el QR. Complete el formulario manualmente o use la lectura por foto (IA).");
+                datos.Advertencias.Add("No se reconocieron datos en el QR. Complete el formulario manualmente o lea la CPE por foto o PDF.");
             else if (string.IsNullOrWhiteSpace(datos.NumeroCPE))
                 datos.Advertencias.Add("No se encontró el número de CPE en el QR.");
 
@@ -147,7 +163,7 @@ namespace ControlBalanza.Services.Cpe
             switch (campo)
             {
                 case "cpe": datos.NumeroCPE ??= valor; break;
-                case "ctg": datos.Ctg ??= valor; break;
+                case "ctg": datos.Ctg ??= Ctg.Normalizar(valor); break;
                 case "patente": datos.PatenteCamion ??= Patente.Normalizar(valor); break;
                 case "acoplado": datos.PatenteAcoplado ??= Patente.Normalizar(valor); break;
                 case "chofer": datos.NombreChofer ??= valor; break;
@@ -184,8 +200,8 @@ namespace ControlBalanza.Services.Cpe
                 foreach (Match m in RegexCtg().Matches(texto))
                 {
                     // Evita confundir un CUIT con el CTG
-                    if (Cuit.SoloDigitos(datos.CuitProveedor) == m.Value) continue;
-                    datos.Ctg = m.Value;
+                    if (Cuit.SoloDigitos(datos.CuitProveedor) == m.Value || !Ctg.EsValido(m.Value)) continue;
+                    datos.Ctg = Ctg.Normalizar(m.Value);
                     break;
                 }
             }

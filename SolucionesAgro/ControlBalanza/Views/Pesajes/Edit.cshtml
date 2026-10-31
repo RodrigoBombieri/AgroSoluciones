@@ -14,17 +14,22 @@
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <label asp-for="NumeroCPE" class="form-label"></label>
             <input asp-for="NumeroCPE" class="form-control mono" />
             <span asp-validation-for="NumeroCPE" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
+            <label asp-for="Ctg" class="form-label"></label>
+            <input asp-for="Ctg" class="form-control mono" />
+            <span asp-validation-for="Ctg" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
             <label asp-for="PatenteCamion" class="form-label"></label>
             <input asp-for="PatenteCamion" class="form-control mono text-uppercase" />
             <span asp-validation-for="PatenteCamion" class="text-danger"></span>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <label asp-for="PatenteAcoplado" class="form-label"></label>
             <input asp-for="PatenteAcoplado" class="form-control mono text-uppercase" />
             <span asp-validation-for="PatenteAcoplado" class="text-danger"></span>

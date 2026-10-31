@@ -24,6 +24,11 @@ namespace ControlBalanza.Models
         [Display(Name = "Número CPE")]
         public string NumeroCPE { get; set; } = string.Empty;
 
+        [StringLength(12)]
+        [Ctg]
+        [Display(Name = "CTG")]
+        public string? Ctg { get; set; } // Código de Trazabilidad de Granos (lo trae el QR de la CPE)
+
         [Required(ErrorMessage = "La patente del camión es obligatoria")]
         [StringLength(20)]
         [Patente]

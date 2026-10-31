@@ -1,20 +1,34 @@
 using ControlBalanza.Data;
+using ControlBalanza.Models;
 using ControlBalanza.Validacion;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ControlBalanza.Services.Cpe
 {
     /// <summary>
-    /// Une los datos leídos de la CPE (QR o IA) con la base: busca el proveedor por CUIT y el producto por nombre.
+    /// Une los datos leídos de la CPE (QR, PDF u OCR) con la base y la configuración:
+    /// busca el proveedor por CUIT y el producto por nombre, cruza el CTG del QR con el impreso,
+    /// y avisa si la CPE está vencida, es para otra planta o ya fue ingresada.
     /// </summary>
     public class CpeIngresoService
     {
         private readonly AgroDbContext _context;
+        private readonly BalanzaOptions _opciones;
+        private readonly TimeProvider _reloj;
 
-        public CpeIngresoService(AgroDbContext context) => _context = context;
-
-        public async Task<CpeDatos> CompletarAsync(CpeDatos datos)
+        public CpeIngresoService(AgroDbContext context, IOptions<BalanzaOptions> opciones, TimeProvider reloj)
         {
+            _context = context;
+            _opciones = opciones.Value;
+            _reloj = reloj;
+        }
+
+        /// <param name="ctgQr">CTG leído del QR de la misma CPE (si se pudo leer), para cruzarlo con el impreso.</param>
+        public async Task<CpeDatos> CompletarAsync(CpeDatos datos, string? ctgQr = null)
+        {
+            CruzarCtgDelQr(datos, ctgQr);
+
             if (!string.IsNullOrWhiteSpace(datos.CuitProveedor))
             {
                 var digitos = Cuit.SoloDigitos(datos.CuitProveedor);
@@ -40,14 +54,42 @@ namespace ControlBalanza.Services.Cpe
                 else datos.Advertencias.Add($"No se encontró el producto \"{datos.Producto}\". Elíjalo manualmente.");
             }
 
-            // Si la CPE no trae número pero sí CTG, se usa el CTG como identificador
-            if (string.IsNullOrWhiteSpace(datos.NumeroCPE) && !string.IsNullOrWhiteSpace(datos.Ctg))
+            // Controles de la CPE
+            if (datos.Vencimiento.HasValue && datos.Vencimiento.Value < _reloj.GetLocalNow().DateTime)
+                datos.Advertencias.Add($"⚠ La CPE está VENCIDA (venció el {datos.Vencimiento:dd/MM/yyyy HH:mm}).");
+
+            if (_opciones.NumeroPlantaRuca.HasValue && datos.PlantaDestino.HasValue && datos.PlantaDestino != _opciones.NumeroPlantaRuca)
+                datos.Advertencias.Add($"⚠ La CPE tiene como destino la planta {datos.PlantaDestino}, no esta planta ({_opciones.NumeroPlantaRuca}).");
+
+            if (!string.IsNullOrWhiteSpace(datos.Ctg))
             {
-                datos.NumeroCPE = datos.Ctg;
-                datos.Advertencias.Add("Se usó el CTG como número de CPE.");
+                var previo = await _context.Pesajes.AsNoTracking()
+                    .Where(p => p.Ctg == datos.Ctg)
+                    .Select(p => new { p.NumeroCPE, p.FechaEntrada, p.Estado })
+                    .FirstOrDefaultAsync();
+                if (previo != null)
+                    datos.Advertencias.Add($"⚠ Esta CPE (CTG {datos.Ctg}) ya fue ingresada el {previo.FechaEntrada:dd/MM/yyyy HH:mm}.");
             }
 
             return datos;
+        }
+
+        private static void CruzarCtgDelQr(CpeDatos datos, string? ctgQr)
+        {
+            if (string.IsNullOrWhiteSpace(ctgQr)) return;
+            var qr = Ctg.Normalizar(ctgQr);
+            if (!Ctg.EsValido(qr)) return;
+
+            if (datos.Ctg == null)
+            {
+                datos.Ctg = qr;
+            }
+            else if (datos.Ctg != qr)
+            {
+                // El QR es una lectura exacta; el impreso puede venir del OCR. Igual puede tratarse de un documento adulterado.
+                datos.Advertencias.Add($"⚠ El CTG del QR ({qr}) NO coincide con el impreso ({datos.Ctg}). Verifique la CPE antes de ingresarla; se usó el del QR.");
+                datos.Ctg = qr;
+            }
         }
 
         private static string SinAcentos(string texto) =>

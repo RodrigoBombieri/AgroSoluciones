@@ -6,6 +6,9 @@
             <dt class="col-sm-5">@Html.DisplayNameFor(m => m.NumeroCPE)</dt>
             <dd class="col-sm-7 mono">@Model.NumeroCPE</dd>
 
+            <dt class="col-sm-5">@Html.DisplayNameFor(m => m.Ctg)</dt>
+            <dd class="col-sm-7 mono">@(Model.Ctg ?? "—")</dd>
+
             <dt class="col-sm-5">@Html.DisplayNameFor(m => m.Estado)</dt>
             <dd class="col-sm-7"><span class="estado estado-@Model.Estado">@VistaHelpers.Estado(Model.Estado)</span></dd>
 
