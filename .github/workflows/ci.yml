@@ -113,9 +113,12 @@ jobs:
 
       - name: Build commiteado al día
         working-directory: .
+        # Se ignoran los finales de línea: algunas licencias de terceros vienen con CRLF y git las normaliza al commitear
         run: |
-          if [ -n "$(git status --porcelain -- SolucionesAgro/ControlBalanza/wwwroot/angular-app)" ]; then
-            git status --short -- SolucionesAgro/ControlBalanza/wwwroot/angular-app
+          DIR=SolucionesAgro/ControlBalanza/wwwroot/angular-app
+          NUEVOS=$(git ls-files --others --exclude-standard -- "$DIR")
+          if ! git diff --ignore-cr-at-eol --exit-code --stat -- "$DIR" || [ -n "$NUEVOS" ]; then
+            echo "$NUEVOS"
             echo "::error::El build de Angular en wwwroot/angular-app no coincide con ClientApp. Correr 'npm run build' en SolucionesAgro/ControlBalanza/ClientApp y commitear."
             exit 1
           fi
