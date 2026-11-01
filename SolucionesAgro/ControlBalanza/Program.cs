@@ -146,3 +146,6 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 app.Run();
+
+/// <summary>Visible para los tests de integración (WebApplicationFactory&lt;Program&gt;).</summary>
+public partial class Program { }

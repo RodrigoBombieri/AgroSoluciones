@@ -4,6 +4,7 @@ Sistema web para la **recepción de camiones de granos** en acopios, molinos y p
 
 Pensado para **zonas rurales con mala conectividad**: la CPE se lee por QR, desde su PDF o con OCR de una foto, todo en el propio equipo, **sin internet y sin servicios pagos**.
 
+[![CI](https://github.com/RodrigoBombieri/AgroSoluciones/actions/workflows/ci.yml/badge.svg)](https://github.com/RodrigoBombieri/AgroSoluciones/actions/workflows/ci.yml)
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
 ![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET_Core-MVC_+_Identity-512BD4)
 ![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)
@@ -23,6 +24,7 @@ Pensado para **zonas rurales con mala conectividad**: la CPE se lee por QR, desd
 - [Stack](#stack)
 - [Puesta en marcha](#puesta-en-marcha)
 - [Configuración](#configuración)
+- [Tests e integración continua](#tests-e-integración-continua)
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Próximos pasos](#próximos-pasos)
 
@@ -127,7 +129,8 @@ La interpretación del texto está en `Services/Cpe/CpeTextoParser.cs` y los con
 | Datos | SQL Server, Entity Framework Core (Code First, migraciones) |
 | Frontend | Razor Views + Bootstrap 5.3; Angular 21 (signals, standalone) para el panel del playón |
 | Lectura de CPE | html5-qrcode (QR), pdf.js (texto del PDF), Tesseract.js (OCR) |
-| Tests | Vitest (Angular) |
+| Tests | xUnit + WebApplicationFactory contra SQL Server (backend), Vitest (Angular) |
+| CI | GitHub Actions |
 
 ---
 
@@ -168,22 +171,53 @@ Sección `Balanza` de `appsettings.json`:
 
 ---
 
+## Tests e integración continua
+
+| Proyecto | Qué cubre | Base de datos |
+|---|---|---|
+| `ControlBalanza.UnitTests` | Validaciones (CUIT, patentes, CTG), lectura de la CPE desde PDF y OCR (con textos reales de una CPE), QR, cálculo de diferencias y formatos. | No usa |
+| `ControlBalanza.IntegrationTests` | Flujo de estados del pesaje, controles de la CPE contra la base, reportes y dashboard. Por HTTP: login, permisos por rol, bloqueo del registro público, API del playón con antiforgery y el circuito completo de un camión (entrada → playón → salida → ticket). | SQL Server real |
+
+Los tests de integración crean una base temporal `AgroTests_…` y la borran al terminar, así que no tocan la base de desarrollo.
+
+Para correr todos los tests, en una terminal en la carpeta `SolucionesAgro`:
+
+```powershell
+dotnet test
+```
+
+Por defecto usan la instancia local `.\SQLEXPRESS01` con autenticación de Windows. Para usar otro servidor, definir la variable de entorno `AGRO_TEST_SQLSERVER` con la cadena de conexión (sin nombre de base). Ejemplo en PowerShell, en la misma terminal:
+
+```powershell
+$env:AGRO_TEST_SQLSERVER = "Server=localhost;User Id=sa;Password=...;TrustServerCertificate=true"
+dotnet test
+```
+
+Desde Visual Studio: menú **Prueba → Explorador de pruebas → Ejecutar todas**.
+
+**CI con GitHub Actions** (`.github/workflows/ci.yml`): en cada push y pull request se compila la solución, se corren los tests unitarios y los de integración contra un SQL Server en contenedor, y se corren los tests y el build del panel Angular. También se verifica que el build commiteado en `wwwroot/angular-app` esté al día con `ClientApp`. Los resultados (`.trx` y cobertura) quedan como artefacto de cada ejecución.
+
+---
+
 ## Estructura del proyecto
 
 ```text
-SolucionesAgro/ControlBalanza/
-├─ Controllers/             Pesajes, Reportes, Usuarios, Proveedores, Productos, Home
-│  └─ Api/PlayonController.cs   API JSON del panel del playón (cookie + antiforgery)
-├─ Services/                Flujo de estados, reportes
-│  └─ Cpe/                  Lectura de la CPE: QR, texto (PDF/OCR) y controles
-├─ Validacion/              CUIT, patentes y CTG
-├─ Seguridad/Roles.cs       Roles del sistema
-├─ Areas/Identity/          Login y acceso denegado en español
-├─ Models/ · ViewModels/    Entidades y modelos de las vistas
-├─ Migrations/              Migraciones de EF Core
-├─ Views/                   Vistas Razor
-├─ ClientApp/               Código fuente Angular (panel del playón)
-└─ wwwroot/                 Estáticos: CSS, JS, build de Angular, fuentes y librerías
+SolucionesAgro/
+├─ ControlBalanza.UnitTests/         Tests unitarios
+├─ ControlBalanza.IntegrationTests/  Tests de integración (servicios + HTTP)
+└─ ControlBalanza/
+   ├─ Controllers/          Pesajes, Reportes, Usuarios, Proveedores, Productos, Home
+   │  └─ Api/PlayonController.cs  API JSON del panel del playón (cookie + antiforgery)
+   ├─ Services/             Flujo de estados, reportes
+   │  └─ Cpe/               Lectura de la CPE: QR, texto (PDF/OCR) y controles
+   ├─ Validacion/           CUIT, patentes y CTG
+   ├─ Seguridad/Roles.cs    Roles del sistema
+   ├─ Areas/Identity/       Login y acceso denegado en español
+   ├─ Models/ · ViewModels/ Entidades y modelos de las vistas
+   ├─ Migrations/           Migraciones de EF Core
+   ├─ Views/                Vistas Razor
+   ├─ ClientApp/            Código fuente Angular (panel del playón)
+   └─ wwwroot/              Estáticos: CSS, JS, build de Angular, fuentes y librerías
 ```
 
 ---
@@ -191,7 +225,7 @@ SolucionesAgro/ControlBalanza/
 ## Próximos pasos
 
 - **Integración con el web service de ARCA (WSCPE):** con el CTG del QR, consultar los datos oficiales de la CPE (`consultarCPEAutomotor`) y confirmar el arribo y la descarga con los pesos reales (`confirmarArriboCPE`, `confirmacionDefinitivaCPEAutomotor`). Requiere el certificado digital del CUIT de la planta.
-- Tests automatizados del backend (flujo de estados y parser de la CPE).
+- **Despliegue continuo (CD)** a un hosting gratuito.
 - Conexión directa con el indicador de la balanza para leer el peso sin tipearlo.
 
 ---

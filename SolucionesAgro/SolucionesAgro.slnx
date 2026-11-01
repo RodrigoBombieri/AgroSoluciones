@@ -1,3 +1,7 @@
 <Solution>
   <Project Path="ControlBalanza/ControlBalanza.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="ControlBalanza.UnitTests/ControlBalanza.UnitTests.csproj" />
+    <Project Path="ControlBalanza.IntegrationTests/ControlBalanza.IntegrationTests.csproj" />
+  </Folder>
 </Solution>

@@ -100,3 +100,6 @@ Properties/PublishProfiles/*.pubxml.user
 ## package-lock.json
 
 # End of file
+
+# Build de Angular: archivo que se regenera en cada build
+ControlBalanza/wwwroot/angular-app/prerendered-routes.json

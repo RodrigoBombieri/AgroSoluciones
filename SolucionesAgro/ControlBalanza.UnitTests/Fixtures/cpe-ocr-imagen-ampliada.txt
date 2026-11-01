@@ -1,0 +1,50 @@
+Carta de Porte Electrónica . Fecha: - 04/12/2024
+Automotor [mIR[M] ope: 00001-00001665
+Vencimiento:
+CTG: 10100014235 EPR cerramos 09:26
+
+A - INTERVINENTES
+Titular Carta de Porte: 33254785743 - AgroRuralSistemas
+Remitente Comercial Productor:
+Rte. Comercial Venta Primaria:
+Rte. Comercial Venta secundaria:
+Rte. Comercial Venta secundaria 2:
+Mercado a Término:
+Rte. Comercial Venta Secundaria:
+Corredor Venta Primaria:
+Corredor Venta Secundaria:
+Representante / Entregador:
+Destinatario: 27000000014 - Las Tres Marias S.R.L
+Destino: 27000000014 - Las Tres Marías S.R.L
+Empresa Transportista: 20120372913 - Los Sauces S.A
+Flete pagador : 33189745873 - Transporte Kota S.A
+Choter :
+
+B - GRANO / ESPECIE
+Grano / especie: Soja Tipo: — Soja Peso Bruto (kg): 112
+
+Poso Tara kg): —— 12
+Peso Neto (kg): 100
+C - PROCEDENCIA
+Es un campo: Si N* Planta (RUCA): Dirección:
+Localidad: — INES INDART Provincia:
+D - DESTINO DE LA MERCADERÍA
+Es un campo: No N* Planta (RUCA): 1782 Dirección: Dirección genérica, Buenos Aires
+Localidad: ALDEA SAN JUAN Provincia: ENTRE RIOS
+E - DATOS DEL TRANSPORTE
+
+Dominios: HOM003
+Partida: 9/1/21 1:08 AM Kms. a recorrer: 100
+Tarifa de Referencia:
+
+F - CONTINGENCIAS
+Contingencia: b) Imposibilidad de tránsito por zona desfavorable — Otro: =
+
+G - DESCARGA
+
+Fecha Arribo: Peso Bruto (kg): Estación Descarga:
+Fecha Descarga: Peso Tara (kg): 12 Localidad:
+N* Turno: Peso Neto (kg): Provincia:
+“ Declaro bajo juramento que la presente carga no ha sido tratada con ningún plaguicida fumigante durante su carga o en
+camión o vagón no autorizado dicho tratamiento durante su tránsito hasta su destino " : Si
+

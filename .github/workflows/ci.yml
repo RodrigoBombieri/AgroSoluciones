@@ -1,0 +1,121 @@
+# Integración continua: en cada push y pull request compila todo y corre los tests.
+#  - dotnet:  build + tests unitarios + tests de integración contra un SQL Server real (contenedor efímero)
+#  - angular: tests del panel del playón + build, y verifica que el build commiteado en wwwroot esté al día
+# Es gratis: repositorio público con runners de GitHub.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dotnet:
+    name: .NET build y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          # Contenedor efímero que solo vive durante el job: la contraseña no es un secreto
+          MSSQL_SA_PASSWORD: CiAgro_2026x
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P CiAgro_2026x -Q 'SELECT 1' -b -o /dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 20s
+
+    env:
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+      # Los tests de integración crean (y borran) una base propia en este servidor
+      AGRO_TEST_SQLSERVER: Server=localhost,1433;User Id=sa;Password=CiAgro_2026x;TrustServerCertificate=true;Encrypt=false
+      # Las vistas muestran fechas en hora argentina
+      TZ: America/Argentina/Buenos_Aires
+
+    defaults:
+      run:
+        working-directory: SolucionesAgro
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore SolucionesAgro.slnx
+
+      - name: Build
+        run: dotnet build SolucionesAgro.slnx -c Release --no-restore
+
+      - name: Tests unitarios
+        run: >-
+          dotnet test ControlBalanza.UnitTests -c Release --no-build
+          --logger "trx;LogFileName=unit.trx" --collect "XPlat Code Coverage"
+          --results-directory ../TestResults
+
+      - name: Tests de integración (SQL Server)
+        run: >-
+          dotnet test ControlBalanza.IntegrationTests -c Release --no-build
+          --logger "trx;LogFileName=integration.trx" --collect "XPlat Code Coverage"
+          --results-directory ../TestResults
+
+      - name: Subir resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-tests
+          path: TestResults
+          retention-days: 14
+
+  angular:
+    name: Angular (panel del playón)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: SolucionesAgro/ControlBalanza/ClientApp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: SolucionesAgro/ControlBalanza/ClientApp/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Tests
+        run: npx ng test --watch=false
+
+      - name: Build
+        run: npm run build
+
+      - name: Build commiteado al día
+        working-directory: .
+        run: |
+          if [ -n "$(git status --porcelain -- SolucionesAgro/ControlBalanza/wwwroot/angular-app)" ]; then
+            git status --short -- SolucionesAgro/ControlBalanza/wwwroot/angular-app
+            echo "::error::El build de Angular en wwwroot/angular-app no coincide con ClientApp. Correr 'npm run build' en SolucionesAgro/ControlBalanza/ClientApp y commitear."
+            exit 1
+          fi
